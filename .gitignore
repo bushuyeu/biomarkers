@@ -172,3 +172,13 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+.python-version
+
+#Google Credentials file
+google_credentials.json
+
+#Examples
+examples/
+
+#MacOS stuff
+.DS_Store
