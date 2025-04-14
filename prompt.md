@@ -13,12 +13,11 @@ From the lab test PDF extract:
   - If neither is present, do not put any date.
 - For each biomarker:
   - Name of the biomarker (as written in the file)
-  - Unit of measurement (e.g. mmol/L, µg/L)
   - Value (exactly as written — numeric or strings like `trace`, `+`, `negative`)
+  - Unit of measurement (e.g. mmol/L, µg/L)
   - Reference range (e.g. 4.0–6.0 or "<5.0")
-  - Reference unit (e.g. mmol/L)
   - Comment (if available, include additional notes or flags related to the result)
-  - If the comment is not in Russian, translate it into Russian.
+    - If the comment is not in Russian, translate it into Russian.
 
 ---
 
@@ -44,15 +43,15 @@ Then immediately follow it with the header row:
 #### Format:
 
 ```
-Название Биомаркера (по-русски),Название Биомаркера (из файла),Единицы,Значение,Референсное значение,Единицы измерения,Комментарий
+Название Биомаркера (по-русски),Название Биомаркера (из файла),Значение,Единицы,Референсное значение,Комментарий
 ```
 
 ### ✅ Example Output (Any Language PDF):
 
 ```
 Дата анализа,31-03-2025
-Глюкоза,Glucose,mmol/L,5.4,4.0–6.0,mmol/L,В норме
-Креатинин,Creatinine,µmol/L,85,60–110,µmol/L,В пределах нормы
+Глюкоза,Glucose,5.4,mmol/L,4.0–6.0,Норма
+Креатинин,Creatinine,85,µmol/L,60–110,В пределах нормы
 ```
 
 ---
