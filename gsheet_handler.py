@@ -76,18 +76,20 @@ def process_csv_and_update_sheet(file_path, test_date):
         if headers[0].strip().lower() == "дата анализа":
             next(reader)
         for row in reader:
-            if len(row) < 3:
+            if len(row) < 6:
                 continue
             biomarker_name = row[0].strip() or row[1].strip()
-            value = row[-1].strip()
+            value = row[2].strip()
+            unit = row[3].strip()
             if not biomarker_name or not value or value.lower() in {"значение", "-", ""}:
                 continue
             biomarker_key = biomarker_name.lower()
+            combined_value = f"{value} {unit}".strip()
 
             if biomarker_key not in biomarker_map:
-                sheet.append_row([biomarker_name] + ["" for _ in range(len(header)-1)])
+                sheet.append_row([biomarker_name, row[1], row[2], row[3]] + [""] * (len(header) - 4))
                 biomarker_map[biomarker_key] = row_index_offset
-                data.append([biomarker_name] + ["" for _ in range(len(header)-1)])
+                data.append([biomarker_name, row[1], row[2], row[3]] + [""] * (len(header) - 4))
                 new_biomarkers.append(biomarker_name)
                 row_index_offset += 1
 
@@ -95,7 +97,7 @@ def process_csv_and_update_sheet(file_path, test_date):
             row_vals = data[row_idx-1] if row_idx-1 < len(data) else []
             existing_val = row_vals[test_col_index-1] if test_col_index-1 < len(row_vals) else ""
 
-            if existing_val == value:
+            if existing_val == combined_value:
                 skipped += 1
                 continue
 
@@ -103,7 +105,7 @@ def process_csv_and_update_sheet(file_path, test_date):
             if existing_val:
                 while col-1 < len(row_vals) and row_vals[col-1]:
                     col += 1
-            batch_data[(row_idx, col)] = value
+            batch_data[(row_idx, col)] = combined_value
             updated += 1
 
     update_payload = [{

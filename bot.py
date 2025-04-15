@@ -26,8 +26,8 @@ async def handle_docs(message: types.Message):  # Asynchronous function to handl
     try:  # Attempting to extract the test date from the CSV file
         test_date = extract_test_date_from_csv(file_path)  # Extracting the test date from the downloaded file
         if not test_date:  # Checking if the test date was not found
-            test_date = "Fallback Test Date"  # Fallback if test date is not found
-            await message.reply("⚠️ Test date not found in the file header. Using fallback date.")  # Informing the user about the fallback
+            test_date = ""  # Fallback if test date is not found
+            await message.reply("⚠️ Test date not found in the file. No date will be used.")  # Informing the user about the fallback
     except Exception:  # Catching any exceptions that occur during test date extraction
         await message.reply("⚠️ Error reading the test date from the file.")  # Informing the user about the error
         return  # Exiting the function if there's an error
