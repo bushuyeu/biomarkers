@@ -1,4 +1,4 @@
-name: Deploy to Oracle VM
+name: Deploy Biomarkers Bot with rollback + Telegram alerts
 
 on:
   push:
@@ -16,15 +16,46 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.ORACLE_HOST }} >> ~/.ssh/known_hosts
+          echo -e "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/github-actions
+          chmod 600 ~/.ssh/github-actions
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and Restart Bot
+      - name: Deploy with rollback + Telegram alerts
         run: |
-          ssh ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }} << 'EOF'
+          ssh -i ~/.ssh/github-actions \
+              -o StrictHostKeyChecking=no \
+              -o IdentitiesOnly=yes \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'bash -s' << 'EOF'
+
+            set -e
             cd ~/biomarkers
-            git pull origin main
-            source venv/bin/activate
-            sudo systemctl restart biomarkers
+
+            echo "[1] Saving current commit..."
+            CURRENT_COMMIT=$(git rev-parse HEAD)
+            echo $CURRENT_COMMIT > .last_commit
+
+            echo "[2] Pulling latest changes..."
+            if ! git pull; then
+              curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+                -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+                -d text="🚨 *Deploy failed during git pull* on *biomarkers bot*."
+              exit 1
+            fi
+
+            echo "[3] Restarting bot service..."
+            if ! sudo systemctl restart biomarkers; then
+              echo "[ERR] Restart failed. Rolling back..."
+              git reset --hard $(cat .last_commit)
+              sudo systemctl restart biomarkers
+              curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+                -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+                -d text="⚠️ *Rollback triggered on biomarkers bot*. Previous version restored."
+              exit 1
+            fi
+
+            curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+              -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+              -d text="✅ *Biomarkers bot deployed successfully* and restarted."
+
+            echo "[OK] Deployment successful."
           EOF
