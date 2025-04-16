@@ -90,17 +90,36 @@ def process_csv_and_update_sheet(file_path: str, test_date: str) -> dict:
     body = data[1:]
 
     # Check if test_date is already in header; if not, add it.
-    if test_date not in header:
-        header += [f"{test_date} Значение", f"{test_date} Единицы", f"{test_date} Референсное значение", f"{test_date} Комментарий"]
-        sheet.update('1:1', [header])
-
-    test_col_index = header.index(f"{test_date} Значение") + 1
+    date_columns = []
+    if test_date:
+        date_columns = [f"{test_date} Значение", f"{test_date} Единицы", f"{test_date} Референсное значение", f"{test_date} Комментарий"]
+        
+        # Check if date exists
+        if f"{test_date} Значение" not in header:
+            logger.info(f"Adding new test date columns: {test_date}")
+            header += date_columns
+            sheet.update('1:1', [header])
+            # Important: Fetch the sheet again to ensure we have updated data with the new columns
+            data = sheet.get_all_values()
+            header = data[0]
+            body = data[1:]
+    
+    # Find the column indices for the test date
+    test_val_col_index = header.index(f"{test_date} Значение") if f"{test_date} Значение" in header else -1
+    test_unit_col_index = header.index(f"{test_date} Единицы") if f"{test_date} Единицы" in header else -1
+    test_ref_col_index = header.index(f"{test_date} Референсное значение") if f"{test_date} Референсное значение" in header else -1
+    test_comment_col_index = header.index(f"{test_date} Комментарий") if f"{test_date} Комментарий" in header else -1
+    
+    if test_val_col_index == -1:
+        logger.error(f"Could not find test date columns after update! Date: {test_date}")
+        return {"new": [], "updated": 0, "skipped": 0, "written": 0}
+    
     row_index_offset = len(body) + 2
 
     # Create a mapping of biomarker names to their row indices
-    biomarker_map = {row[0].strip().lower(): i + 2 for i, row in enumerate(body)}
+    biomarker_map = {row[0].strip().lower(): i + 2 for i, row in enumerate(body) if row and row[0].strip()}
 
-    batch_data = {}
+    batch_data = []
     new_biomarkers = []
     updated = 0
     skipped = 0
@@ -109,54 +128,76 @@ def process_csv_and_update_sheet(file_path: str, test_date: str) -> dict:
         with open(file_path, newline='', encoding='utf-8') as f:
             reader = csv.reader(f)
             headers = next(reader)
-            if headers[0].strip().lower() == "дата анализа":
+            # Skip the "Дата анализа" row if present
+            if headers and headers[0].strip().lower() == "дата анализа":
                 next(reader)
+                # Read the header row
+                headers = next(reader)
+            
             for row in reader:
                 if len(row) < 6:
+                    logger.warning(f"Skipping row with fewer than 6 columns: {row}")
                     continue
+                
                 biomarker_name = row[0].strip() or row[1].strip()
                 value = row[2].strip()
                 unit = row[3].strip()
                 reference_value = row[4].strip()
                 comment = row[5].strip()
+                
                 if not biomarker_name or not value or value.lower() in {"значение", "-", ""}:
+                    logger.debug(f"Skipping empty or invalid biomarker: {row}")
                     continue
+                
                 biomarker_key = biomarker_name.lower()
 
                 # Add new biomarker if not already in the sheet
                 if biomarker_key not in biomarker_map:
-                    sheet.append_row([biomarker_name, row[1], value, unit, reference_value, comment] + [""] * (len(header) - 6))
+                    logger.info(f"Adding new biomarker: {biomarker_name}")
+                    new_row = [biomarker_name, row[1], "", "", "", ""] + [""] * (len(header) - 6)
+                    sheet.append_row(new_row)
                     biomarker_map[biomarker_key] = row_index_offset
-                    data.append([biomarker_name, row[1], value, unit, reference_value, comment] + [""] * (len(header) - 6))
-                    new_biomarkers.append(biomarker_name)
                     row_index_offset += 1
-
+                    new_biomarkers.append(biomarker_name)
+                
                 row_idx = biomarker_map[biomarker_key]
-                existing_val = data[row_idx - 1][test_col_index - 1] if row_idx - 1 < len(data) else ""
-
-                # Skip if the value already exists
-                if existing_val == value:
+                
+                # Get current row data to check if value already exists
+                row_data = sheet.row_values(row_idx) if row_idx <= sheet.row_count else []
+                
+                # Check if value already exists
+                if test_val_col_index < len(row_data) and row_data[test_val_col_index] == value:
+                    logger.debug(f"Value already exists for {biomarker_name}: {value}")
                     skipped += 1
                     continue
-
-                # Find the next available column for the value
-                col = test_col_index
-                while col - 1 < len(data[row_idx - 1]) and data[row_idx - 1][col - 1]:
-                    col += 1
-                batch_data[(row_idx, col)] = value
+                
+                # Add value, unit, reference, and comment to batch update
+                batch_data.append({
+                    'range': f"{rowcol_to_a1(row_idx, test_val_col_index + 1)}",
+                    'values': [[value]]
+                })
+                batch_data.append({
+                    'range': f"{rowcol_to_a1(row_idx, test_unit_col_index + 1)}",
+                    'values': [[unit]]
+                })
+                batch_data.append({
+                    'range': f"{rowcol_to_a1(row_idx, test_ref_col_index + 1)}",
+                    'values': [[reference_value]]
+                })
+                batch_data.append({
+                    'range': f"{rowcol_to_a1(row_idx, test_comment_col_index + 1)}",
+                    'values': [[comment]]
+                })
                 updated += 1
 
         # Update the sheet with new values
-        update_payload = [{
-            'range': rowcol_to_a1(row, col),
-            'values': [[value]]
-        } for (row, col), value in batch_data.items()]
-
-        if update_payload:
-            sheet.batch_update(update_payload)
+        if batch_data:
+            logger.info(f"Updating sheet with {len(batch_data)} cells")
+            sheet.batch_update(batch_data)
 
     except Exception as e:
-        logger.exception("Failed to process CSV and update sheet: %s", e)
+        logger.exception(f"Failed to process CSV and update sheet: {e}")
+        return {"new": [], "updated": 0, "skipped": 0, "written": 0}
 
     return {
         "new": new_biomarkers,

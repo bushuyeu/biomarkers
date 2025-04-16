@@ -56,6 +56,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"🧪 Biomarkers in file: {total_biomarkers}"
         )
 
+        await update.message.reply_text("⏳ Processing biomarkers and uploading to Google Sheets...")
+
         # Process and update the Google Sheet
         result = process_csv_and_update_sheet(download_path, test_date)
 
