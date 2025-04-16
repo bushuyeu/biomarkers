@@ -56,9 +56,17 @@ jobs:
               exit 1
             fi
 
-            curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
-              -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-              -d text="✅ *Biomarkers bot deployed successfully* and restarted."
+            # Check service health
+            if systemctl is-active --quiet biomarkers; then
+              curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+                -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+                -d text="✅ *Biomarkers bot deployed successfully* and is running."
+            else
+              curl -s -X POST https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage \
+                -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+                -d text="❌ *Biomarkers bot failed to start properly after deployment*."
+              exit 1
+            fi
 
             echo "[OK] Deployment successful."
           EOF

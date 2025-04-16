@@ -6,6 +6,7 @@ import logging
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread.utils import rowcol_to_a1
+from typing import List, Tuple
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 WORKSHEET_NAME = os.getenv("GOOGLE_WORKSHEET_NAME")
 CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE")
 
-def validate_csv_format(file_path: str) -> list[tuple[int, list[str]]]:
+def validate_csv_format(file_path: str) -> List[Tuple[int, List[str]]]:
     """Check that each row in the file has exactly 6 fields. Return list of (row_num, row) for invalid ones."""
     invalid_rows = []
     try:
