@@ -73,4 +73,5 @@ async def handle_docs(message: types.Message) -> None:  # Asynchronous function 
 
 if __name__ == '__main__':  # Checking if the script is being run directly
     logging.basicConfig(level=logging.INFO)  # Configuring logging to display info level messages
+    logging.info("🤖 Bot is now polling for messages...")
     executor.start_polling(dp, skip_updates=True)  # Starting the bot and polling for updates, skipping any that arrived while offline

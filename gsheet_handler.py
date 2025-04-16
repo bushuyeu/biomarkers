@@ -1,7 +1,7 @@
 import os
 import csv
 import re
-import gspread
+from gspread import Worksheet
 import logging
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
@@ -16,7 +16,7 @@ SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 WORKSHEET_NAME = os.getenv("GOOGLE_WORKSHEET_NAME")
 CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE")
 
-def get_google_sheet() -> gspread.models.Worksheet:
+def get_google_sheet() -> Worksheet:
     """Authorize and get the Google Sheet worksheet."""
     try:
         creds = ServiceAccountCredentials.from_json_keyfile_name(
