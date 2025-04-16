@@ -16,6 +16,20 @@ SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 WORKSHEET_NAME = os.getenv("GOOGLE_WORKSHEET_NAME")
 CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE")
 
+def validate_csv_format(file_path: str) -> list[tuple[int, list[str]]]:
+    """Check that each row in the file has exactly 6 fields. Return list of (row_num, row) for invalid ones."""
+    invalid_rows = []
+    try:
+        with open(file_path, newline='', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            for idx, row in enumerate(reader, start=1):
+                if len(row) != 6:
+                    invalid_rows.append((idx, row))
+    except Exception as e:
+        logger.exception("Failed to validate CSV format: %s", e)
+    return invalid_rows
+
+
 def get_google_sheet() -> gspread.Worksheet:
     """Authorize and get the Google Sheet worksheet."""
     try:
