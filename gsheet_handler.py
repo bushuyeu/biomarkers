@@ -77,7 +77,7 @@ def count_biomarkers_in_file(file_path: str) -> int:
         with open(file_path, newline='', encoding='utf-8') as f:
             reader = csv.reader(f)
             next(reader)  # Skip header
-            count = sum(1 for row in reader if row and row[-1].strip())
+            count = sum(1 for row in reader if len(row) == 6)
     except Exception as e:
         logger.exception("Failed to count biomarkers in file: %s", e)
     return count
