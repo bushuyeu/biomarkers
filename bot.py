@@ -1,6 +1,5 @@
 import logging  # Importing the logging module for logging errors and information
 import os  # Importing the os module for interacting with the operating system
-import re  # Importing the re module for regular expressions
 from aiogram import Bot, Dispatcher, executor, types  # Importing necessary classes from aiogram for bot functionality
 from dotenv import load_dotenv  # Importing load_dotenv to load environment variables from a .env file
 from gsheet_handler import (  # Importing functions for handling Google Sheets
@@ -16,7 +15,8 @@ bot = Bot(token=BOT_TOKEN)  # Creating a Bot instance with the provided token
 dp = Dispatcher(bot)  # Creating a Dispatcher instance to handle updates
 
 @dp.message_handler(content_types=types.ContentType.DOCUMENT)  # Defining a handler for document messages
-async def handle_docs(message: types.Message):  # Asynchronous function to handle incoming document messages
+async def handle_docs(message: types.Message) -> None:  # Asynchronous function to handle incoming document messages
+    """Handles incoming document messages, processes CSV files, and updates Google Sheets."""
     document = message.document  # Accessing the document from the message
     file_path = os.path.join("downloads", document.file_name)  # Defining the file path to save the document
     os.makedirs("downloads", exist_ok=True)  # Creating the downloads directory if it doesn't exist
@@ -42,7 +42,6 @@ async def handle_docs(message: types.Message):  # Asynchronous function to handl
         )
 
         result = process_csv_and_update_sheet(file_path, test_date)  # Processing the CSV and updating the Google Sheet
-        col_letter = result.get('col_letter', '?')  # Getting the column letter where data was posted
         new_count = len(result.get('new', []))  # Counting new biomarkers added
         updated = result.get('updated', 0)  # Counting updated biomarkers
         skipped = result.get('skipped', 0)  # Counting skipped duplicates
@@ -51,7 +50,7 @@ async def handle_docs(message: types.Message):  # Asynchronous function to handl
         response = (  # Preparing the response message to the user
             f"✅ Sheet updated!\n\n"
             f"📄 Biomarkers in file: {total_biomarkers}\n"
-            f"📤 Posted to sheet: {written} (in column {col_letter})\n"
+            f"📤 Posted to sheet: {written}\n"
             f"🆕 New: {new_count}\n"
             f"🔄 Updated: {updated}\n"
             f"🚫 Duplicates skipped: {skipped}"
