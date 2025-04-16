@@ -46,6 +46,8 @@ Then immediately follow it with the header row:
 Название Биомаркера (по-русски),Название Биомаркера (из файла),Значение,Единицы,Референсное значение,Комментарий
 ```
 
+- Any values (especially in the comment or reference fields) that include commas must be enclosed in double quotes to ensure correct CSV parsing.
+
 ### ✅ Example Output (Any Language PDF):
 
 ```
@@ -84,6 +86,8 @@ Return:
 - If the same biomarker appears multiple times with different values, append each unique value in new columns to the right
 - Keep all distinct values for the same biomarker by placing them in adjacent columns
 - Preserve duplicate entries even if values are repeated, exactly as they were provided in the source
+- Escape or quote any values that include commas, semicolons, or newlines to avoid breaking the CSV format.
+- Make sure CSV has exactly 6 columns
 
 ---
 
