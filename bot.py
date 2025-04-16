@@ -1,53 +1,72 @@
-import logging  # Importing the logging module for logging errors and information
-import os  # Importing the os module for interacting with the operating system
-from aiogram import Bot, Dispatcher, executor, types  # Importing necessary classes from aiogram for bot functionality
-from dotenv import load_dotenv  # Importing load_dotenv to load environment variables from a .env file
-from gsheet_handler import (  # Importing functions for handling Google Sheets
-    process_csv_and_update_sheet,  # Function to process CSV and update Google Sheets
-    extract_test_date_from_csv,  # Function to extract test date from the CSV file
-    count_biomarkers_in_file  # Function to count biomarkers in the given file
+import os  # Interact with the operating system
+import logging  # Logging for errors and information
+from dotenv import load_dotenv  # Load environment variables from a .env file
+from telegram import Update, Document  # Telegram bot update and document types
+from telegram.ext import (  # Importing telegram bot framework components
+    ApplicationBuilder,
+    MessageHandler,
+    ContextTypes,
+    filters
+)
+from gsheet_handler import (  # Importing biomarker-related processing logic
+    process_csv_and_update_sheet,  # Function to process CSV and update the Google Sheet
+    extract_test_date_from_csv,  # Extract test date from a given file
+    count_biomarkers_in_file  # Count biomarkers in a given file
 )
 
-load_dotenv()  # Loading environment variables from the .env file
+# Load environment variables from .env file
+load_dotenv()
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Retrieving the Telegram bot token from environment variables
-bot = Bot(token=BOT_TOKEN)  # Creating a Bot instance with the provided token
-dp = Dispatcher(bot)  # Creating a Dispatcher instance to handle updates
+# Configure logging to show debug information
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-@dp.message_handler(content_types=types.ContentType.DOCUMENT)  # Defining a handler for document messages
-async def handle_docs(message: types.Message) -> None:  # Asynchronous function to handle incoming document messages
-    """Handles incoming document messages, processes CSV files, and updates Google Sheets."""
-    document = message.document  # Accessing the document from the message
-    file_path = os.path.join("downloads", document.file_name)  # Defining the file path to save the document
-    os.makedirs("downloads", exist_ok=True)  # Creating the downloads directory if it doesn't exist
+# Read Telegram bot token from environment variables
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-    await message.document.download(destination_file=file_path)  # Downloading the document to the specified file path
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle uploaded document, process it, and post results to Google Sheets."""
+    document: Document = update.message.document  # Get the uploaded document
+    file_name = document.file_name  # Extract the file name
+    download_path = os.path.join("downloads", file_name)  # Define path to save the file
+    os.makedirs("downloads", exist_ok=True)  # Ensure the downloads folder exists
 
-    try:  # Attempting to extract the test date from the CSV file
-        test_date = extract_test_date_from_csv(file_path)  # Extracting the test date from the downloaded file
-        if not test_date:  # Checking if the test date was not found
-            test_date = ""  # Fallback if test date is not found
-            await message.reply("⚠️ Test date not found in the file. No date will be used.")  # Informing the user about the fallback
-    except Exception:  # Catching any exceptions that occur during test date extraction
-        await message.reply("⚠️ Error reading the test date from the file.")  # Informing the user about the error
-        return  # Exiting the function if there's an error
+    file = await context.bot.get_file(document.file_id)  # Retrieve the file from Telegram
+    await file.download_to_drive(custom_path=download_path)  # Save the file locally
 
-    try:  # Attempting to count biomarkers in the file
-        total_biomarkers = count_biomarkers_in_file(file_path)  # Counting the total biomarkers in the file
+    try:
+        # Try to extract test date from the file content
+        test_date = extract_test_date_from_csv(download_path)
+        if not test_date:
+            test_date = ""  # Fallback if test date is missing
+            await update.message.reply_text("⚠️ Test date not found in the file. No date will be used.")
+    except Exception:
+        # Notify and stop if test date extraction fails
+        await update.message.reply_text("⚠️ Error reading the test date from the file.")
+        return
 
-        await message.reply(  # Sending a reply to the user with file details
-            f"📥 File received: {document.file_name}\n"
+    try:
+        # Count number of biomarkers in the uploaded file
+        total_biomarkers = count_biomarkers_in_file(download_path)
+
+        # Send initial confirmation message
+        await update.message.reply_text(
+            f"📥 File received: {file_name}\n"
             f"📅 Test date: {test_date}\n"
             f"🧪 Biomarkers in file: {total_biomarkers}"
         )
 
-        result = process_csv_and_update_sheet(file_path, test_date)  # Processing the CSV and updating the Google Sheet
-        new_count = len(result.get('new', []))  # Counting new biomarkers added
-        updated = result.get('updated', 0)  # Counting updated biomarkers
-        skipped = result.get('skipped', 0)  # Counting skipped duplicates
-        written = result.get('written', 0)  # Counting total written entries
+        # Process and update the Google Sheet
+        result = process_csv_and_update_sheet(download_path, test_date)
 
-        response = (  # Preparing the response message to the user
+        # Extract update stats
+        new_count = len(result.get('new', []))
+        updated = result.get('updated', 0)
+        skipped = result.get('skipped', 0)
+        written = result.get('written', 0)
+
+        # Format the summary response
+        response = (
             f"✅ Sheet updated!\n\n"
             f"📄 Biomarkers in file: {total_biomarkers}\n"
             f"📤 Posted to sheet: {written}\n"
@@ -56,22 +75,32 @@ async def handle_docs(message: types.Message) -> None:  # Asynchronous function 
             f"🚫 Duplicates skipped: {skipped}"
         )
 
-        if new_count > 0:  # Checking if there are new biomarkers
-            response += "\n\n🆕 New biomarkers:\n"  # Adding a section for new biomarkers
-            response += "\n".join(f"• {name}" for name in result['new'][:10])  # Listing the new biomarkers
-            if new_count > 10:  # Checking if there are more than 10 new biomarkers
-                response += f"\n...and {new_count - 10} more."  # Informing the user about additional new biomarkers
+        # Show up to 10 new biomarkers
+        if new_count > 0:
+            response += "\n\n🆕 New biomarkers:\n"
+            response += "\n".join(f"• {name}" for name in result['new'][:10])
+            if new_count > 10:
+                response += f"\n...and {new_count - 10} more."
 
-        await message.reply(response)  # Sending the final response to the user
+        # Send summary to user
+        await update.message.reply_text(response)
 
-    except Exception as e:  # Catching any exceptions that occur during file processing
-        logging.exception("Error processing file")  # Logging the error for debugging
-        await message.reply(f"❌ Error: {str(e)}")  # Informing the user about the processing error
-    finally:  # Final block to execute regardless of success or failure
-        if os.path.exists(file_path):  # Checking if the file exists
-            os.remove(file_path)  # Removing the file after processing
+    except Exception as e:
+        # Log and notify user if processing failed
+        logger.exception("Error processing file")
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+    finally:
+        # Clean up local file
+        if os.path.exists(download_path):
+            os.remove(download_path)
 
-if __name__ == '__main__':  # Checking if the script is being run directly
-    logging.basicConfig(level=logging.INFO)  # Configuring logging to display info level messages
-    logging.info("🤖 Bot is now polling for messages...")
-    executor.start_polling(dp, skip_updates=True)  # Starting the bot and polling for updates, skipping any that arrived while offline
+if __name__ == '__main__':
+    # Create bot application
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    # Register handler for incoming documents
+    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+
+    # Start polling for messages
+    logger.info("🤖 Bot is now polling for messages...")
+    app.run_polling()
