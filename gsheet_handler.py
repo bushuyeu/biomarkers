@@ -2,7 +2,7 @@ import os #Import the operating system module, used here for path manipulation a
 import csv  # Import the csv module to handle CSV file reading
 import logging  # Import logging module for logging errors and information
 import time  # Import time module to add delays between API calls
-from typing import List, Dict, Optional  # Import type annotations for better code clarity
+from typing import List, Dict, Optional, Union  # Import type annotations for better code clarity
 import gspread  # Import gspread to interact with Google Sheets API
 from oauth2client.service_account import ServiceAccountCredentials  # Import for OAuth2 credentials handling
 from gspread.utils import rowcol_to_a1  # Import utility to convert row/col indices to A1 notation
@@ -44,7 +44,7 @@ def count_biomarkers_in_csv(file_path: str) -> int:
         next(reader)  # Skip the header row
         return sum(1 for _ in reader)  # Count all remaining rows
 
-def process_csv_and_update_sheet(file_path: str, test_date: str) -> Dict[str, int | List[str]]:
+def process_csv_and_update_sheet(file_path: str, test_date: str) -> Dict[str, Union[int, List[str]]]:
     try:
         sheet = get_google_sheet()  # Get the Google Sheet worksheet object
         header_row = sheet.row_values(1)  # Read the first row (header) from the sheet
