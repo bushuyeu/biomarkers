@@ -10,8 +10,8 @@ from telegram.ext import (  # Importing telegram bot framework components
 )
 from gsheet_handler import (  # Import functions from the local `gsheet_handler.py` file
     process_csv_and_update_sheet,  # The function that handles reading the CSV and updating the Google Sheet
-    extract_test_date_from_csv,  # The function to get the test date from the CSV
-    count_biomarkers_in_file  # The function to count biomarker rows in the CSV
+    extract_test_date_from_filename,  # The function to get the test date from the CSV
+    count_biomarkers_in_csv  # The function to count biomarker rows in the CSV
 )
 
 # Load environment variables from .env file
@@ -36,7 +36,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     try: # Start a block to handle potential errors during date extraction.
         # Try to extract test date from the file content
-        test_date = extract_test_date_from_csv(download_path) # Call the function from `gsheet_handler` to extract the test date from the downloaded file.
+        test_date = extract_test_date_from_filename(download_path) # Call the function from `gsheet_handler` to extract the test date from the downloaded file.
         if not test_date: # If the `extract_test_date_from_csv` function returned None or an empty string.
             test_date = ""  # Set `test_date` to an empty string as a fallback.
             await update.message.reply_text("⚠️ Test date not found in the file. No date will be used.") # Send a message back to the user in Telegram indicating the date wasn't found.
@@ -45,7 +45,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return # Exit the handler function early if date extraction failed critically.
 
     try: # Start a block for counting biomarkers and updating the sheet
-        total_biomarkers = count_biomarkers_in_file(download_path) # Call the function from `gsheet_handler` to count valid biomarker rows in the file.
+        total_biomarkers = count_biomarkers_in_csv(download_path) # Call the function from `gsheet_handler` to count valid biomarker rows in the file.
         await update.message.reply_text( # Send an initial confirmation message to the user.
             f"📥 File received: {file_name}\n" # Include the filename
             f"📅 Test date: {test_date}\n" # Include the extracted test date or 'Not found'.
@@ -58,7 +58,6 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         # Extract update stats
         new_count = len(result.get('new', [])) # Get the number of new biomarkers added from the result dictionary
-        updated = result.get('updated', 0) # Get the total count of updated/written biomarkers (excluding exact duplicates) from the result dictionary.
         skipped = result.get('skipped', 0) # Get the count of skipped duplicate biomarkers from the result dictionary.
         written = result.get('written', 0) # Get the count of biomarkers actually written (new + updated non-duplicates) from the result.
 
@@ -68,7 +67,6 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"📄 Biomarkers in file: {total_biomarkers}\n"
             f"📤 Posted to sheet: {written}\n"
             f"🆕 New: {new_count}\n"
-            f"🔄 Updated: {updated}\n"
             f"🚫 Duplicates skipped: {skipped}"
         )
 
