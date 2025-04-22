@@ -10,17 +10,21 @@ From the lab test PDF extract:
 
 - **Test Date** (in format `dd-mm-yyyy`) Prefer “sample collection date” over other dates. Use the following fallback order: Collected → Received → Reported → Printed. If none are available, leave date blank.
 
+- **Biomarker Name** (used for the first two columns in the CSV):
+
+  - `Название Биомаркера (из файла)`:
+    - Keep this **exactly** as written in the PDF, including all abbreviations and parenthetical text. Do **not** translate, reformat, or clean this value. It must match the source document character-for-character.
+  - `Название Биомаркера (по-русски)`:
+    - If the biomarker name is in **Russian**, copy the value of `Название Биомаркера (из файла)` exactly.
+    - If the biomarker name is in **another language**, translate it into Russian if possible using reliable sources (e.g., HMDB, WHO terminology). If no suitable translation is found, leave it blank.
+
 - For each biomarker:
-  - **Biomarker Name** (as written in the PDF, with any extra notations)
-    - If the biomarker name is in Russian, keep it.
-    - If it is in another language (e.g. English), translate the name it into Russian if possible.
-      - Use reliable sources like HMDB or WHO terminology.
-      - If no match is found, do not translate.
+
   - **Value**
   - **Unit of measurement** (e.g. mmol/L, µg/L)
   - **Reference range** (e.g. 4.0–6.0 or "<5.0")
   - **Comment** (notes or result flags)
-    - If the comment is in Russian, keep it.
+    - If the language of the document is mostly Russian, keep the comment exactly as written in the PDF, including any abbreviations or parenthetical text. Do not modify, translate, or clean this field. It must match the original formatting character-for-character from the PDF.
     - If it is in another language (e.g. English), translate the comment into Russian if possible.
       - Translate full comments carefully using terminology from reliable healthcare sources like HMDB or WHO. Retain all qualifiers or remarks. Do not paraphrase or shorten unless translation is impossible.
 
@@ -65,7 +69,8 @@ Return:
 
 - A **downloadable link** to the `.csv` file
 - A **code block preview** of the CSV contents
-- Total number of biomarkers extracted (each row = one biomarker reading)
+- **Total number of biomarkers** extracted (each row = one biomarker reading)
+- **Indicate confidence or parsing quality** to help the user access the need for manual verification
 
 ---
 
@@ -73,6 +78,7 @@ Return:
 
 - Output must be encoded as UTF-8 and fully compatible with spreadsheet import tools (e.g., Google Sheets).
 - Only one header row (no repeated headers)
+- Values for the second column, `Название Биомаркера (из файла)`: keep exactly as written in the PDF, including any abbreviations or parenthetical text. Do not modify, translate, or clean this field. It must match the original formatting character for character from the PDF.
 - All values must be clean:
   - Strip whitespace
   - Standardize decimal symbols (use dots, not commas)
@@ -82,7 +88,8 @@ Return:
 - Tables in the PDF may be poorly formatted or split across lines. Use spatial context to group each biomarker row correctly.
 - Reconstruct hyphenated words or broken numeric ranges (e.g., “4.0–” + “6.0” → “4.0–6.0”).
 - If text appears distorted or incomplete, note it and extract as best-effort.
-
----
+- If any required field (e.g. value, unit) is missing, write "" (empty field) but still include the row.
+- If a row contains broken formatting (e.g., misaligned cells, header-like text inside the table), do your best to extract meaningful data. Example: if a biomarker name is split across two lines, try to merge them into one.
+- If a unit, value, or reference range appears malformed or unrecognized, do not fix or skip it — copy it exactly as-is from the PDF. In such cases, include a flag in the parsing confidence output, stating that “⚠️ Rows {n, ..} contain unrecognized formatting and may require manual review.”
 
 Be precise. Stick to format. Output structured, loadable CSV data.
