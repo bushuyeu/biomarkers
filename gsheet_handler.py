@@ -1,4 +1,4 @@
-import os
+import os # Import the operating system module, used here for path manipulation and environment variables
 import csv
 import re
 import gspread
@@ -19,7 +19,7 @@ WORKSHEET_NAME = os.getenv("GOOGLE_WORKSHEET_NAME")
 CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE")
 
 # API throttling parameters
-MAX_BATCH_SIZE = 10  # Maximum number of cells to update in a single batch
+MAX_BATCH_SIZE = 50  # Maximum number of cells to update in a single batch
 RATE_LIMIT_DELAY = 1  # Seconds to wait between API calls
 
 def validate_csv_format(file_path: str) -> List[Tuple[int, List[str]]]:
@@ -85,7 +85,7 @@ def count_biomarkers_in_file(file_path: str) -> int:
             first_row = next(reader, None)
             if first_row and first_row[0].strip().lower() == "дата анализа":
                 next(reader, None)  # Skip header row
-            count = sum(1 for row in reader if len(row) == 6)
+            count = sum(1 for row in reader if len(row) == 6) #revisit
     except Exception as e:
         logger.exception("Failed to count biomarkers in file: %s", e)
     return count
@@ -183,15 +183,18 @@ def process_csv_and_update_sheet(file_path: str, test_date: str) -> dict:
             if biomarker_key in biomarker_to_row:
                 # Biomarker exists, check if value already exists
                 row_idx = biomarker_to_row[biomarker_key]
-                row_data = all_data[row_idx - 1] if row_idx - 1 < len(all_data) else []
+                ## to do - explain what it does 
+                row_data = all_data[row_idx - 1] if row_idx - 1 < len(all_data) else [] 
                 
-                # Check if value already exists
+                # Check if value already exists for this specific biomarker for the same date we are currently processing
                 if (value_col_idx - 1 < len(row_data) and 
                     row_data[value_col_idx - 1] == biomarker["value"]):
                     skipped_count += 1
                     continue
                 
-                # Add to batch update
+                # Add to batch update to overwrite for an existing value or to post a new one 
+                # to-do remove overwrites - talk to the user
+                #explain the datastructure - each dict contains a range of the google sheet cell ranges and the values are the values that will be replaced in the according cells
                 batch_updates.extend([
                     {'range': f"{rowcol_to_a1(row_idx, value_col_idx)}", 'values': [[biomarker["value"]]]},
                     {'range': f"{rowcol_to_a1(row_idx, unit_col_idx)}", 'values': [[biomarker["unit"]]]},
