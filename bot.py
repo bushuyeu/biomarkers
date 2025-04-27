@@ -70,6 +70,12 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             f"🚫 Duplicates skipped: {skipped}"
         )
 
+        potential_duplicates = result.get('potential_duplicates', [])  # Retrieve list of potential duplicate biomarker pairs from the result, or an empty list if none
+        if potential_duplicates:  # If there are any potential duplicates detected
+            response += "\n\n⚠️ Potential duplicates detected:\n"  # Add a warning header to the response message
+            for new_name, existing_name in potential_duplicates:  # Iterate over each pair of new biomarker and existing similar biomarker
+                response += f"• {new_name} ↔ {existing_name}\n"  # Add a line showing the new biomarker matched with the existing one
+
         # Show up to 10 new biomarkers
         if new_count > 0: # If there were any new biomarkers added
             response += "\n\n🆕 New biomarkers:\n" # Append a header for the list of new biomarkers to the response string

@@ -115,10 +115,20 @@ def process_csv_and_update_sheet(file_path: str, test_date: str) -> Dict[str, Un
             sheet.append_rows(new_rows)  # Append all new rows to the sheet
             time.sleep(RATE_LIMIT_DELAY)  # Sleep to respect API rate limits
 
+        # Detect potential duplicates
+        potential_duplicates = []  # Initialize a list to collect potential duplicate biomarker pairs
+        for new_name in new_biomarkers:  # Iterate over each newly added biomarker name
+            new_norm = normalize_key(new_name)  # Normalize the new biomarker name for consistent comparison
+            for existing_norm, _ in biomarker_to_row.items():  # Iterate over all existing normalized biomarker names
+                if new_norm != existing_norm and (new_norm in existing_norm or existing_norm in new_norm):  
+                    # If the normalized new name is not exactly the same as an existing name, but one is contained within the other, consider it a potential duplicate
+                    potential_duplicates.append((new_name, existing_norm))  # Record the new and existing biomarker names as a potential duplicate
+
         return {  # Return summary dictionary of results
             "new": new_biomarkers,  # List of new biomarkers added
             "skipped": skipped,  # Number of skipped entries (unchanged)
-            "written": written  # Total number of rows written or updated
+            "written": written,  # Total number of rows written or updated
+            "potential_duplicates": potential_duplicates  # List of potential duplicates
         }
 
     except Exception as e:  # Catch any exceptions during processing
