@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Union  # Import type annotations for be
 import gspread  # Import gspread to interact with Google Sheets API
 from oauth2client.service_account import ServiceAccountCredentials  # Import for OAuth2 credentials handling
 from gspread.utils import rowcol_to_a1  # Import utility to convert row/col indices to A1 notation
+import re  # Make sure this is imported at the top of the file
 
 # Logging setup
 logger = logging.getLogger(__name__)  # Create a logger object for this module
@@ -19,8 +20,12 @@ MAX_BATCH_SIZE = 50  # Maximum number of batch updates per API call
 RATE_LIMIT_DELAY = 1  # Delay in seconds to respect API rate limits
 
 def normalize_key(name: str) -> str:
-    #TODO add regex to normalize biomarker names further - remove special characters
-    return name.strip().lower()  # Normalize biomarker names for consistent matching
+    """Normalize biomarker names for consistent matching by stripping spaces,
+    converting to lowercase, and removing all special characters, except %."""
+    name = name.strip().lower()  # Trim spaces and convert to lowercase
+    name = re.sub(r"[^\w\s%]", "", name)  # Remove all characters except word characters, spaces, and %
+    name = re.sub(r"\s+", " ", name)  # Replace multiple spaces with a single space
+    return name  # Return the cleaned name
 
 def get_google_sheet() -> gspread.Worksheet:
     """Authorize and get the Google Sheet worksheet."""  
