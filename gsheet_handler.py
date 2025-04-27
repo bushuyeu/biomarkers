@@ -19,6 +19,7 @@ MAX_BATCH_SIZE = 50  # Maximum number of batch updates per API call
 RATE_LIMIT_DELAY = 1  # Delay in seconds to respect API rate limits
 
 def normalize_key(name: str) -> str:
+    #TODO add regex to normalize biomarker names further - remove special characters
     return name.strip().lower()  # Normalize biomarker names for consistent matching
 
 def get_google_sheet() -> gspread.Worksheet:
@@ -33,7 +34,7 @@ def get_google_sheet() -> gspread.Worksheet:
 
 def extract_test_date_from_filename(filename: str) -> Optional[str]:
     import re  # Import regex module locally
-    match = re.search(r"(\d{2})[-.](\d{2})[-.](\d{4})", filename)  # Search for date pattern DD-MM-YYYY or DD.MM.YYYY in filename
+    match = re.search(r"(\d{2})[.-](\d{2})[-.](\d{4})", filename)  # Search for date pattern DD-MM-YYYY or DD.MM.YYYY in filename
     if match:  # If a match is found
         return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"  # Return date formatted as DD-MM-YYYY
     return None  # Return None if no date pattern found

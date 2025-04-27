@@ -1,4 +1,12 @@
-Using the prompt below (STRICTLY!) generate a CSV with ALL! Biomarkers in all pages and provide all other comments mentioned in the prompt:
+Using the prompt below generate a CSV with Biomarkers in all pages of the provided file
+
+If multiple PDF files are uploaded, **process each file independently**.
+For each PDF:
+
+- Extract biomarkers separately.
+- Generate a separate CSV file.
+- Follow Steps 1–5 fully for **each individual file**.
+- **Never combine data from multiple PDFs into a single CSV.** Each PDF should result in its own independent CSV file.
 
 # 🧠 Prompt: Convert PDF Lab Report to CSV
 
@@ -65,7 +73,7 @@ If the `test date` was not available, and the fallback result date was not found
 
 ---
 
-### ✅ Step 5: Final Output
+### ✅ Step 4: Final Output
 
 Return:
 
