@@ -7,7 +7,7 @@ cred = credentials.Certificate("secrets/firebase-key.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-def upload_biomarkers_to_firestore(user_id: str, test_date: str, rows: list[dict]) -> None:
+def upload_biomarkers_to_firestore(user_id: str, test_date: str, rows: List[Dict]) -> None:
     """
     Uploads biomarker test results under:
     users/{user_id}/biomarkers/{test_date}
