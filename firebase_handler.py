@@ -1,3 +1,4 @@
+from typing import List, Dict
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -20,7 +21,7 @@ def upload_biomarkers_to_firestore(user_id: str, test_date: str, rows: list[dict
 
 
 # Add biomarker history updating function
-def update_biomarker_history(user_id: str, test_date: str, rows: list[dict]) -> None:
+def update_biomarker_history(user_id: str, test_date: str, rows: List[Dict]) -> None:
     """
     For each biomarker, append a new test entry to its history:
     users/{user_id}/biomarker_history/{biomarker_name}
