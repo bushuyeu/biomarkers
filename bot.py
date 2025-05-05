@@ -90,28 +90,6 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             rows=biomarker_dicts
         )
 
-    def update_biomarker_history(user_id: str, test_date: str, rows: list[dict]) -> None:
-    '''
-    For each biomarker, append a new test entry to its history:
-    users/{user_id}/biomarker_history/{biomarker_name}
-    '''
-
-    for row in rows:
-        name = row["Biomarker"]
-        entry = {
-            "date": test_date,
-            "value": row["Value"],
-            "units": row["Units"],
-            "ref_range": row["Reference Range"],
-            "notes": row["Notes"]
-        }
-        doc_ref = db.collection("users").document(user_id).collection("biomarker_history").document(name)
-        doc_ref.set({
-            "name": name,
-            "history": firestore.ArrayUnion([entry])
-        }, merge=True)
-
-
         # Extract update stats
         new_count = len(result.get('new', [])) # Get the number of new biomarkers added from the result dictionary
         skipped = result.get('skipped', 0) # Get the count of skipped duplicate biomarkers from the result dictionary.
