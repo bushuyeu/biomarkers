@@ -14,6 +14,8 @@ from gsheet_handler import (  # Import functions from the local `gsheet_handler.
     count_biomarkers_in_csv  # The function to count biomarker rows in the CSV
 )
 
+from firebase_handler import upload_biomarkers_to_firestore, update_biomarker_history # Firebase import
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -55,6 +57,60 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text("⏳ Processing biomarkers and uploading to Google Sheets...") # Inform the user that the processing is starting.
 
         result = process_csv_and_update_sheet(download_path, test_date) # Call the main processing function from `gsheet_handler`, passing the file path and extracted date.
+
+        # Extract CSV data again to push to Firebase
+        import csv
+        with open(download_path, newline='', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            headers = next(reader)  # Skip header
+            biomarker_dicts = [
+                {
+                    "Biomarker": row[0],
+                    "Value": row[1],
+                    "Units": row[2],
+                    "Reference Range": row[3],
+                    "Notes": row[4]
+                }
+                for row in reader if len(row) == 5
+            ]
+
+        # Upload to Firestore
+        upload_biomarkers_to_firestore(
+            user_id=str(update.effective_user.id),
+            test_date=test_date,
+            rows=biomarker_dicts
+        )
+
+        from firebase_handler import update_biomarker_history
+
+        # Update per-biomarker longitudinal history
+        update_biomarker_history(
+            user_id=str(update.effective_user.id),
+            test_date=test_date,
+            rows=biomarker_dicts
+        )
+
+    def update_biomarker_history(user_id: str, test_date: str, rows: list[dict]) -> None:
+    '''
+    For each biomarker, append a new test entry to its history:
+    users/{user_id}/biomarker_history/{biomarker_name}
+    '''
+
+    for row in rows:
+        name = row["Biomarker"]
+        entry = {
+            "date": test_date,
+            "value": row["Value"],
+            "units": row["Units"],
+            "ref_range": row["Reference Range"],
+            "notes": row["Notes"]
+        }
+        doc_ref = db.collection("users").document(user_id).collection("biomarker_history").document(name)
+        doc_ref.set({
+            "name": name,
+            "history": firestore.ArrayUnion([entry])
+        }, merge=True)
+
 
         # Extract update stats
         new_count = len(result.get('new', [])) # Get the number of new biomarkers added from the result dictionary

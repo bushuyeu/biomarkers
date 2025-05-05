@@ -174,11 +174,17 @@ cython_debug/
 .pypirc
 .python-version
 
+# secrets
+secrets/
+
 #Google Credentials file
 google_credentials.json
 
 #Examples
 examples/
+
+#Firebase credentials file
+awesome-biomarkers-firebase-adminsdk-fbsvc-a13e75f1b3.json
 
 #MacOS stuff
 .DS_Store

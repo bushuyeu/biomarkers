@@ -3,3 +3,4 @@ python-dotenv
 python-telegram-bot==20.7
 gspread
 oauth2client
+firebase-admin
