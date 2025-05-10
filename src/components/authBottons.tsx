@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 
 export default function AuthButtons() {
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -24,8 +25,6 @@ export default function AuthButtons() {
   }, []);
 
   const handleSignIn = async () => {
-    const router = useRouter();
-
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);

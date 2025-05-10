@@ -1,5 +1,3 @@
-import { useRouter } from 'next/navigation';
-
 export default function DashboardLayout({
   children,
 }: {
