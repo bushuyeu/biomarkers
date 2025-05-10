@@ -1,7 +1,6 @@
 'use client'; // Ensures this file runs on the client side in Next.js App Router
 
 // Import core dependencies
-import Link from 'next/link'; // For client-side navigation links
 import { Button } from '@/components/ui/button'; // shadcn/ui Button component
 import { useRouter } from 'next/navigation'; // Next.js router for programmatic navigation
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth'; // Firebase sign-in functions

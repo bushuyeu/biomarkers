@@ -45,6 +45,7 @@ export default function Dashboard() {
       {/* Sidebar */}
       <div className="w-64 bg-gray-100 p-4 border-r"> {/* Fixed-width left menu panel */}
         <h2 className="text-lg font-semibold mb-4">Menu</h2> {/* Sidebar heading */}
+        <h2 className="text-sm text-muted-foreground mb-4">{`Logged in as ${user?.email}`}</h2>
         <ul className="space-y-2"> {/* Vertical list with spacing */}
           <li>
             <Button variant="outline" className="w-full justify-start">
