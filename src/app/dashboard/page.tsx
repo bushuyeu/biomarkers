@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import {
-  GoogleAuthProvider,
-  signInWithPopup,
   signOut,
   onAuthStateChanged,
   User,
@@ -13,30 +11,25 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-export default function AuthButtons() {
+export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      if (!currentUser) {
+        router.push('/');
+      } else {
+        setUser(currentUser);
+      }
     });
     return () => unsubscribe();
-  }, []);
-
-  const handleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard'); // Redirect after successful sign-in
-    } catch (err) {
-      console.error('Sign-in error:', err);
-    }
-  };
+  }, [router]);
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      router.push('/');
     } catch (err) {
       console.error('Sign-out error:', err);
     }
@@ -44,13 +37,11 @@ export default function AuthButtons() {
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
-      {user ? (
-        <div className="text-center">
-          <p className="mb-2 text-sm text-gray-600">Signed in as {user.email}</p>
+      {user && (
+        <>
+          <p className="mb-2 text-sm text-gray-600">Welcome back, {user.email}</p>
           <Button onClick={handleSignOut}>Sign out</Button>
-        </div>
-      ) : (
-        <Button onClick={handleSignIn}>Sign in with Google</Button>
+        </>
       )}
     </div>
   );
