@@ -11,12 +11,23 @@ import {
   User,
 } from 'firebase/auth';
 
-import { Button } from "@/components/ui/button"; // Import styled button from shadcn/ui
 
-export default function Dashboard() {
+import { AppSidebar } from "@/components/app-sidebar"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { DataTable } from "@/components/data-table"
+import { SectionCards } from "@/components/section-cards"
+import { SiteHeader } from "@/components/site-header"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
+
+import data from "./data.json"
+
+export default function Page() {
   const [user, setUser] = useState<User | null>(null); // State to track signed-in user
   const router = useRouter(); // Get router instance for navigation
-
+  
   // Check auth state on component mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -40,37 +51,29 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen"> {/* Full height layout with horizontal flex */}
-      
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-100 p-4 border-r"> {/* Fixed-width left menu panel */}
-        <h2 className="text-lg font-semibold mb-4">Menu</h2> {/* Sidebar heading */}
-        <h2 className="text-sm text-muted-foreground mb-4">{`Logged in as ${user?.email}`}</h2>
-        <ul className="space-y-2"> {/* Vertical list with spacing */}
-          <li>
-            <Button variant="outline" className="w-full justify-start">
-              Upload File
-            </Button> {/* File upload menu option */}
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-sm text-gray-500 mt-8"
-              onClick={handleSignOut}
-            >
-              Sign out
-            </Button> {/* Sign-out button in sidebar */}
-          </li>
-        </ul>
-      </div>
-
-      {/* Main Dashboard Content */}
-      <div className="flex-1 p-8"> {/* Main content area grows to fill space */}
-        <h1 className="text-xl font-bold mb-4">Upload a File</h1> {/* Page heading */}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg h-60 flex items-center justify-center text-gray-500">
-          Drag and drop your .csv file here or click to upload.
-        </div> {/* Placeholder drop zone for file uploads */}
-      </div>
-    </div>
-  );
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div>
+              <DataTable data={data} />
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }
