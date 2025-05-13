@@ -17,10 +17,7 @@ import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import data from "./data.json"
 
@@ -40,16 +37,6 @@ export default function Page() {
     return () => unsubscribe(); // Clean up subscription on unmount
   }, [router]);
 
-  // Sign out the user and redirect to landing page
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth); // Sign out with Firebase
-      router.push('/'); // Navigate back to root
-    } catch (err) {
-      console.error('Sign-out error:', err); // Log error if any
-    }
-  };
-
   return (
     <SidebarProvider
       style={
@@ -59,7 +46,7 @@ export default function Page() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" user={user}/>
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
