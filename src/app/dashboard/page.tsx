@@ -6,7 +6,6 @@ import { auth } from '@/lib/firebase'; // Import initialized Firebase app
 
 // Import required Firebase Auth utilities
 import {
-  signOut,
   onAuthStateChanged,
   User,
 } from 'firebase/auth';
