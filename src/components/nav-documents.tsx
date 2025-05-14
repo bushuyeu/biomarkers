@@ -22,7 +22,7 @@ import {
   // SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  //useSidebar,
 } from "@/components/ui/sidebar"
 
 export function NavDocuments({
