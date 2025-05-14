@@ -34,6 +34,7 @@ export function NavDocuments({
     icon: Icon
   }[]
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isMobile } = useSidebar()
 
   return (
