@@ -35,7 +35,7 @@ export function NavDocuments({
   }[]
 }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { isMobile } = useSidebar()
+  //const { isMobile } = useSidebar()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
