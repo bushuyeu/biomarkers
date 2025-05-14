@@ -170,7 +170,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "header",
-    header: "Header",
+    header: "Biomarker",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />
     },
@@ -178,7 +178,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "type",
-    header: "Section Type",
+    header: "Analysis Type",
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -203,7 +203,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
+    header: () => <div className="w-full text-right">Current Value</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {
@@ -228,7 +228,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "limit",
-    header: () => <div className="w-full text-right">Limit</div>,
+    header: () => <div className="w-full text-right">Target Value</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {
@@ -253,7 +253,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "reviewer",
-    header: "Reviewer",
+    header: "MD",
     cell: ({ row }) => {
       const isAssigned = row.original.reviewer !== "Assign reviewer"
 
@@ -419,28 +419,32 @@ export function DataTable({
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="outline">Health Plan Outline</SelectItem>
+            <SelectItem value="outline">Health Plan</SelectItem>
             <SelectItem value="past-performance">Past Activities</SelectItem>
             <SelectItem value="key-personnel">Key Personnel</SelectItem>
             <SelectItem value="focus-documents">Focus Documents</SelectItem>
           </SelectContent>
         </Select>
         <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
+          <TabsTrigger value="outline">
+            Health Plan<Badge variant="secondary">10</Badge>
+            </TabsTrigger>
           <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
+            Needs Immidiate Attention<Badge variant="secondary">3</Badge>
           </TabsTrigger>
           <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
+            Habit Change <Badge variant="secondary">1</Badge>
           </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
+          <TabsTrigger value="focus-documents">
+            Suggestions <Badge variant="secondary">5</Badge>
+          </TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
+                <span className="hidden lg:inline">Columns</span>
                 <span className="lg:hidden">Columns</span>
                 <IconChevronDown />
               </Button>
@@ -724,7 +728,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           )}
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
-              <Label htmlFor="header">Header</Label>
+              <Label htmlFor="header">Biomarker</Label>
               <Input id="header" defaultValue={item.header} />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -750,7 +754,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
                       Focus Documents
                     </SelectItem>
                     <SelectItem value="Narrative">Narrative</SelectItem>
-                    <SelectItem value="Cover Page">Cover Page</SelectItem>
+                    <SelectItem value="Activity 1">Activity 1</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -779,17 +783,17 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
+              <Label htmlFor="reviewer">MD</Label>
               <Select defaultValue={item.reviewer}>
                 <SelectTrigger id="reviewer" className="w-full">
                   <SelectValue placeholder="Select a reviewer" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                  <SelectItem value="Jamik Tashpulatov">
-                    Jamik Tashpulatov
+                  <SelectItem value="Eddie Lake, MD">Eddie Lake, MD</SelectItem>
+                  <SelectItem value="Jamik Tashpulatov, MD">
+                    Jamik Tashpulatov, MD
                   </SelectItem>
-                  <SelectItem value="Emily Whalen">Emily Whalen</SelectItem>
+                  <SelectItem value="Emily Whalen, MD">Emily Whalen, MD</SelectItem>
                 </SelectContent>
               </Select>
             </div>

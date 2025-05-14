@@ -28,7 +28,7 @@ export function SectionCards() {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Great work! Reduced by 1 year this month <IconTrendingDown className="size-4" />
+            Reduced by 1 year this month <IconTrendingDown className="size-4" />
           </div>
           <div className="text-muted-foreground">
             10 yrs younger than your calendar age
@@ -37,9 +37,9 @@ export function SectionCards() {
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Critical biomarker</CardDescription>
+          <CardDescription>Testesterone</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
+            123
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -59,9 +59,9 @@ export function SectionCards() {
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Another Critical Biomarker</CardDescription>
+          <CardDescription>BMI</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+            21
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -74,7 +74,7 @@ export function SectionCards() {
           <div className="line-clamp-1 flex gap-2 font-medium">
             Strong improvement <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Reducation of inflamations exceeds the target</div>
+          <div className="text-muted-foreground">BMI goal exceeds the target</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
