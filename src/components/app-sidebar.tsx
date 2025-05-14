@@ -43,24 +43,59 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Hormonal Health",
       url: "#",
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
+      title: "Physical Examinations",
       url: "#",
-      icon: IconChartBar,
+      icon: IconListDetails,
     },
     {
-      title: "Projects",
+      title: "Blood Health",
       url: "#",
-      icon: IconFolder,
+      icon: IconListDetails,
     },
     {
-      title: "Team",
+      title: "Heart Health",
       url: "#",
-      icon: IconUsers,
+      icon: IconListDetails,
+    },
+    {
+      title: "Inflammation & Immunity",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Kidney Health",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Liver Health",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Bone & Joint Health",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Energy & Metabolism",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Nutrients & Vitamins",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Cancer Screening",
+      url: "#",
+      icon: IconListDetails,
     },
   ],
   navClouds: [
@@ -130,7 +165,7 @@ const data = {
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Historal Files",
       url: "#",
       icon: IconDatabase,
     },
@@ -140,7 +175,7 @@ const data = {
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
+      name: "Mediacal Assistant",
       url: "#",
       icon: IconFileWord,
     },
