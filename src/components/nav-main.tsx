@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
+import { IconMessageCircle, IconMail, type Icon } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
@@ -36,8 +36,8 @@ export function NavMain({
               tooltip="Quick Upload"
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
-              <IconCirclePlusFilled />
-              <span>Quick Upload</span>
+              <IconMessageCircle />
+              <span>Consierge</span>
             </SidebarMenuButton>
             <Button
               size="icon"

@@ -162,17 +162,17 @@ const data = {
   ],
   documents: [
     {
-      name: "Historal Files",
-      url: "#",
+      name: "Upload ",
+      url: "/upload",
       icon: IconDatabase,
     },
     {
-      name: "Reports",
+      name: "Historical Files",
       url: "#",
       icon: IconReport,
     },
     {
-      name: "Mediacal Assistant",
+      name: "Reports",
       url: "#",
       icon: IconFileWord,
     },
