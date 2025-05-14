@@ -275,9 +275,9 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
               <SelectValue placeholder="Assign reviewer" />
             </SelectTrigger>
             <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">
-                Jamik Tashpulatov
+              <SelectItem value="Eddie Lake, MD">Eddie Lake, MD</SelectItem>
+              <SelectItem value="Jamik Tashpulatov, MD">
+                Jamik Tashpulatov, MD
               </SelectItem>
             </SelectContent>
           </Select>
@@ -419,8 +419,8 @@ export function DataTable({
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
+            <SelectItem value="outline">Health Plan Outline</SelectItem>
+            <SelectItem value="past-performance">Past Activities</SelectItem>
             <SelectItem value="key-personnel">Key Personnel</SelectItem>
             <SelectItem value="focus-documents">Focus Documents</SelectItem>
           </SelectContent>
