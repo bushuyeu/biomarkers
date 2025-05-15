@@ -592,8 +592,7 @@ const DropzoneFileListItem = forwardRef<
 });
 DropzoneFileListItem.displayName = "DropzoneFileListItem";
 
-interface DropzoneFileMessageProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {}
+type DropzoneFileMessageProps = React.HTMLAttributes<HTMLParagraphElement>
 
 const DropzoneFileMessage = forwardRef<
   HTMLParagraphElement,
@@ -626,8 +625,7 @@ const DropzoneFileMessage = forwardRef<
   );
 });
 DropzoneFileMessage.displayName = "DropzoneFileMessage";
-interface DropzoneMessageProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {}
+type DropzoneMessageProps = React.HTMLAttributes<HTMLParagraphElement>
 
 const DropzoneMessage = forwardRef<HTMLParagraphElement, DropzoneMessageProps>(
   (props, ref) => {
@@ -722,8 +720,7 @@ const DropzoneRetryFile = forwardRef<HTMLButtonElement, DropzoneRetryFileProps>(
 );
 DropzoneRetryFile.displayName = "DropzoneRetryFile";
 
-interface DropzoneTriggerProps
-  extends React.LabelHTMLAttributes<HTMLLabelElement> {}
+type DropzoneTriggerProps = React.LabelHTMLAttributes<HTMLLabelElement>
 
 const DropzoneTrigger = forwardRef<HTMLLabelElement, DropzoneTriggerProps>(
   ({ className, children, ...props }, ref) => {
@@ -773,7 +770,7 @@ const DropzoneTrigger = forwardRef<HTMLLabelElement, DropzoneTriggerProps>(
 );
 DropzoneTrigger.displayName = "DropzoneTrigger";
 
-interface InfiniteProgressProps extends React.HTMLAttributes<HTMLDivElement> {
+type InfiniteProgressProps = React.HTMLAttributes<HTMLDivElement> & {
   status: "pending" | "success" | "error";
 }
 
