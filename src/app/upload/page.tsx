@@ -27,7 +27,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
-export function MultiImages() {
+function MultiImages() {
     const dropzone = useDropzone({
       onDropFile: async (file: File) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
