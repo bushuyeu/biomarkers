@@ -8,9 +8,12 @@ import { auth } from '@/lib/firebase'; // Import initialized Firebase app
     DropZoneArea,
     DropzoneFileList,
     DropzoneFileListItem,
+    DropzoneFileMessage,
+    DropzoneTrigger,
     DropzoneMessage,
     DropzoneRemoveFile,
-    DropzoneTrigger,
+    DropzoneRetryFile,
+    InfiniteProgress,
     useDropzone,
   } from "@/components/ui/dropzone";
 
@@ -27,83 +30,97 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
-function MultiImages() {
-    const dropzone = useDropzone({
-      onDropFile: async (file: File) => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+import { RotateCcwIcon, FileIcon } from "lucide-react";
+
+function MultiFiles() {
+  const dropzone = useDropzone({
+    onDropFile: async () => {
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * 500 + 1000),
+      );
+
+      if (Math.random() > 0.8) {
         return {
-          status: "success",
-          result: URL.createObjectURL(file),
+          status: "error",
+          error: "Failed to upload file",
         };
-      },
-      validation: {
-        accept: {
-          "image/*": [".png", ".jpg", ".jpeg"],
-        },
-        maxSize: 10 * 1024 * 1024,
-        maxFiles: 10,
-      },
-    });
- 
-    return (
-      <div className="not-prose flex flex-col gap-4">
-        <Dropzone {...dropzone}>
-          <div>
-            <div className="flex justify-between">
-              <DropzoneMessage />
-            </div>
-            <DropZoneArea>
-              <DropzoneTrigger className="flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
-                <CloudUploadIcon className="size-8" />
-                <div>
-                  <p className="font-semibold">Upload Test Results</p>
-                  <p className="text-sm text-muted-foreground">
-                    Click here or drag and drop to upload
-                  </p>
-                </div>
-              </DropzoneTrigger>
-            </DropZoneArea>
+      }
+      return {
+        status: "success",
+        result: undefined,
+      };
+    },
+    validation: {
+      maxFiles: 10,
+    },
+  });
+
+  return (
+    <div className="not-prose flex flex-col gap-4">
+      <Dropzone {...dropzone}>
+        <div>
+          <div className="flex justify-between">
+            <DropzoneMessage />
           </div>
- 
-          <DropzoneFileList className="grid gap-3 p-0 md:grid-cols-2 lg:grid-cols-3">
-            {dropzone.fileStatuses.map((file) => (
-              <DropzoneFileListItem
-                className="overflow-hidden rounded-md bg-secondary p-0 shadow-sm"
-                key={file.id}
-                file={file}
-              >
-                {file.status === "pending" && (
-                  <div className="aspect-video animate-pulse bg-black/20" />
-                )}
-                {file.status === "success" && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={file.result}
-                    alt={`uploaded-${file.fileName}`}
-                    className="aspect-video object-cover"
-                  />
-                )}
-                <div className="flex items-center justify-between p-2 pl-4">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm">{file.fileName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(file.file.size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
-                  </div>
+          <DropZoneArea>
+            <DropzoneTrigger className="flex flex-col items-center gap-4 bg-transparent p-10 text-center text-sm">
+              <CloudUploadIcon className="size-8" />
+              <div>
+                <p className="font-semibold">Upload files</p>
+                <p className="text-sm text-muted-foreground">
+                  Click here or drag and drop to upload. Please select up to 10 files. 
+                </p>
+              </div>
+            </DropzoneTrigger>
+          </DropZoneArea>
+        </div>
+
+        <DropzoneFileList className="flex flex-col gap-3">
+          {dropzone.fileStatuses.map((file) => (
+            <DropzoneFileListItem
+              className="flex flex-col gap-3"
+              key={file.id}
+              file={file}
+            >
+              <div className="flex justify-between">
+                <div className="flex min-w-0 items-center gap-2 font-bold">
+                  <FileIcon className="size-5 text-muted-foreground" />
+                  <p className="truncate">{file.fileName}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {file.status === "error" && (
+                    <DropzoneRetryFile
+                      variant="ghost"
+                      className="hover:border"
+                      type="button"
+                      size="icon"
+                    >
+                      <RotateCcwIcon className="size-4" />
+                    </DropzoneRetryFile>
+                  )}
+
                   <DropzoneRemoveFile
                     variant="ghost"
-                    className="shrink-0 hover:outline"
+                    className="hover:border"
+                    type="button"
+                    size="icon"
                   >
                     <Trash2Icon className="size-4" />
                   </DropzoneRemoveFile>
                 </div>
-              </DropzoneFileListItem>
-            ))}
-          </DropzoneFileList>
-        </Dropzone>
-      </div>
-    );
-  }
+              </div>
+              <InfiniteProgress status={file.status} />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <p>{(file.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                <DropzoneFileMessage />
+              </div>
+            </DropzoneFileListItem>
+          ))}
+        </DropzoneFileList>
+      </Dropzone>
+    </div>
+  );
+}
 
 export default function Page() {
   const [user, setUser] = useState<User | null>(null); // State to track signed-in user
@@ -136,7 +153,7 @@ export default function Page() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="px-4 lg:px-6">
-              <MultiImages />
+              <MultiFiles />
             </div>
           </div>
         </div>

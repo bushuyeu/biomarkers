@@ -136,19 +136,19 @@ const getRootError = (
         const acceptedTypes = Object.values(limits.accept ?? {})
           .flat()
           .join(", ");
-        return `only ${acceptedTypes} are allowed`;
+        return `Only ${acceptedTypes} files are allowed`;
       case "file-too-large":
         const maxMb = limits.maxSize
           ? (limits.maxSize / (1024 * 1024)).toFixed(2)
           : "infinite?";
-        return `max size is ${maxMb}MB`;
+        return `Maximum file size is ${maxMb}MB`;
       case "file-too-small":
         const roundedMinSize = limits.minSize
           ? (limits.minSize / (1024 * 1024)).toFixed(2)
           : "negative?";
-        return `min size is ${roundedMinSize}MB`;
+        return `Minimum size of a file is ${roundedMinSize}MB`;
       case "too-many-files":
-        return `max ${limits.maxFiles} files`;
+        return `Please upload up to ${limits.maxFiles} files at a time`;
     }
   });
   const joinedErrors = errors.join(", ");
