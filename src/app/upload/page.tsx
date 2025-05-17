@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'; // Import React hooks for lifecycle and state
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
 import { auth } from '@/lib/firebase'; // Import initialized Firebase app
+import { uploadFile } from "@/lib/uploadFile";
   import {
     Dropzone,
     DropZoneArea,
@@ -32,23 +33,17 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import { RotateCcwIcon, FileIcon } from "lucide-react";
 
-function MultiFiles() {
+function MultiFiles({ user }: { user: User }) {
   const dropzone = useDropzone({
-    onDropFile: async () => {
-      await new Promise((resolve) =>
-        setTimeout(resolve, Math.random() * 500 + 1000),
-      );
-
-      if (Math.random() > 0.8) {
-        return {
-          status: "error",
-          error: "Failed to upload file",
-        };
+    onDropFile: async (file) => {
+      try {
+        if (!user) throw new Error("User must be logged in to upload files.");
+        await uploadFile(file);
+        return { status: "success", result: undefined };  // ✅ Include required result key
+      } catch (error) {
+        console.error("Upload failed", error);
+        return { status: "error", error: "Failed to upload file" };
       }
-      return {
-        status: "success",
-        result: undefined,
-      };
     },
     validation: {
       maxFiles: 10,
@@ -153,7 +148,7 @@ export default function Page() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="px-4 lg:px-6">
-              <MultiFiles />
+              {user && <MultiFiles user={user} />}
             </div>
           </div>
         </div>
