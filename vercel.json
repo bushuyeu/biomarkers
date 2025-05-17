@@ -1,0 +1,3 @@
+{
+  "ignoreCommand": "echo 'Skip Firebase functions during Vercel build'"
+}
