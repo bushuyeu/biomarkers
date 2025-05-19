@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 
 export default function LandingPage() {
     return (
@@ -13,11 +14,14 @@ export default function LandingPage() {
                 </h1>
                 <p className="text-lg text-muted-foreground">
                     Upload your medical test results.<br />
-                    We&rsquo;re here to help</p>                
-                <p className="text-muted-foreground">
-                    Whether you're curious, proactive, or already tracking your health — we turn medical data into clear insights and a smarter plan for what’s next.
+                    We&rsquo;ll translate them into insights that make sense &mdash; and matter.
                 </p>
-                <Button className="text-lg px-6 py-4">Join the waitlist</Button>
+                <p className="text-muted-foreground">
+                    Whether you&rsquo;re curious, proactive, or already tracking your health &mdash; we turn medical data into clear insights and a smarter plan for what&rsquo;s next.
+                </p>
+                <Link href="/signup">
+                    <Button className="text-lg px-6 py-4">Join the waitlist</Button>
+                </Link>
             </section>
 
             {/* What You Get Section */}
@@ -28,7 +32,7 @@ export default function LandingPage() {
                         <CardContent className="space-y-3 p-6">
                             <h3 className="text-xl font-semibold">See your trends</h3>
                             <p className="text-muted-foreground">
-                                Track how your key markers change over time. No more guessing — just clear, simple visuals.
+                                Track how your key markers change over time. No more guessing &mdash; just clear, simple visuals.
                             </p>
                         </CardContent>
                     </Card>
@@ -36,7 +40,7 @@ export default function LandingPage() {
                         <CardContent className="space-y-3 p-6">
                             <h3 className="text-xl font-semibold">Know your risks</h3>
                             <p className="text-muted-foreground">
-                                Get a personalized risk profile based on your data — powered by medical research and machine learning.
+                                Get a personalized risk profile based on your data &mdash; powered by medical research and machine learning.
                             </p>
                         </CardContent>
                     </Card>
@@ -44,7 +48,7 @@ export default function LandingPage() {
                         <CardContent className="space-y-3 p-6">
                             <h3 className="text-xl font-semibold">Your health plan</h3>
                             <p className="text-muted-foreground">
-                                Receive a tailored plan that shows what to do next — tests to run, questions to ask your doctor, and actions to take today.
+                                Receive a tailored plan that shows what to do next &mdash; tests to run, questions to ask your doctor, and actions to take today.
                             </p>
                         </CardContent>
                     </Card>
@@ -55,7 +59,7 @@ export default function LandingPage() {
             <section className="max-w-3xl text-center space-y-4">
                 <h2 className="text-2xl font-semibold">Built for preventive health</h2>
                 <p className="text-muted-foreground">
-                    Most health issues don’t start overnight — they build up quietly, over years. We help you catch them before they become a problem.
+                    Most health issues don&rsquo;t start overnight &mdash; they build up quietly, over years. We help you catch them before they become a problem.
                 </p>
                 <p className="text-muted-foreground">
                     This is preventive medicine, powered by your own data.
@@ -64,9 +68,9 @@ export default function LandingPage() {
 
             {/* Who It's For */}
             <section className="max-w-4xl text-center space-y-4">
-                <h2 className="text-2xl font-semibold">Who It’s For</h2>
+                <h2 className="text-2xl font-semibold">Who It&rsquo;s For</h2>
                 <p className="text-muted-foreground">
-                    anyone who believes prevention is better than cure • people who want more from their checkups • athletes and biohackers • anyone managing chronic symptoms • those with a family history of disease
+                    anyone who believes prevention is better than cure &bull; people who want more from their checkups &bull; athletes and biohackers &bull; anyone managing chronic symptoms &bull; those with a family history of disease
                 </p>
             </section>
 
@@ -102,9 +106,9 @@ export default function LandingPage() {
             <section className="max-w-3xl space-y-6 text-center">
                 <h2 className="text-2xl font-semibold">How It Works</h2>
                 <ol className="space-y-2 text-muted-foreground">
-                    <li><strong>1. Upload your labs:</strong> PDF, screenshot, or from your provider — we support them all.</li>
+                    <li><strong>1. Upload your labs:</strong> PDF, screenshot, or from your provider &mdash; we support them all.</li>
                     <li><strong>2. Let the AI do the work:</strong> We scan your biomarkers, highlight what matters, and track your changes over time.</li>
-                    <li><strong>3. Get your insights:</strong> Receive a clear summary of your health risks — and a plan for what to do next.</li>
+                    <li><strong>3. Get your insights:</strong> Receive a clear summary of your health risks &mdash; and a plan for what to do next.</li>
                 </ol>
             </section>
 
@@ -112,7 +116,7 @@ export default function LandingPage() {
             <section className="max-w-3xl text-center space-y-6">
                 <h2 className="text-2xl font-semibold">Is my data safe?</h2>
                 <p className="text-muted-foreground">
-                    Absolutely. Your data is encrypted and never shared. You control what you upload — and you can delete it anytime.
+                    Absolutely. Your data is encrypted and never shared. You control what you upload &mdash; and you can delete it anytime.
                 </p>
                 <h2 className="text-2xl font-semibold">Backed by science</h2>
                 <p className="text-muted-foreground">
@@ -124,8 +128,10 @@ export default function LandingPage() {
             {/* Final CTA */}
             <section className="text-center space-y-4">
                 <h2 className="text-2xl font-semibold">Ready to get started?</h2>
-                <p className="text-muted-foreground">All we need is your latest bloodwork. PDF or screenshot — we’ll take care of the rest.</p>
-                <Button className="text-lg px-6 py-4">Join the waitlist</Button>
+                <p className="text-muted-foreground">All we need is your latest bloodwork. PDF or screenshot &mdash; we&rsquo;ll take care of the rest.</p>
+                <Link href="/signup">
+                    <Button className="text-lg px-6 py-4">Join the waitlist</Button>
+                </Link>
             </section>
         </main>
     )
