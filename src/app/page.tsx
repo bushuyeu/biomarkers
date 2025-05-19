@@ -13,8 +13,7 @@ export default function LandingPage() {
                 </h1>
                 <p className="text-lg text-muted-foreground">
                     Upload your medical test results.<br />
-                    We’ll translate them into insights that make sense — and matter.
-                </p>
+                    We&rsquo;re here to help</p>                
                 <p className="text-muted-foreground">
                     Whether you're curious, proactive, or already tracking your health — we turn medical data into clear insights and a smarter plan for what’s next.
                 </p>
