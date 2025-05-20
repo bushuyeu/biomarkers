@@ -27,4 +27,4 @@ jobs:
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/credentials.json" >> $GITHUB_ENV
 
       - name: Deploy Firestore rules
-        run: firebase deploy --only firestore:rules
+        run: firebase deploy --only firestore:rules --project awesome-biomarkers
