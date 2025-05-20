@@ -34,6 +34,7 @@ export type FileStatus<TUploadRes, TUploadError> = {
   fileName: string;
   file: File;
   tries: number;
+  progress?: number;
 } & (
   | {
       status: "pending";
@@ -68,7 +69,12 @@ const fileStatusReducer = <TUploadRes, TUploadError>(
     | ({
         type: "update-status";
         id: string;
-      } & DropzoneResult<TUploadRes, TUploadError>),
+      } & DropzoneResult<TUploadRes, TUploadError>)
+    | {
+        type: "update-progress";
+        id: string;
+        progress: number;
+      },
 ): FileStatus<TUploadRes, TUploadError>[] => {
   switch (action.type) {
     case "add":
@@ -100,6 +106,12 @@ const fileStatusReducer = <TUploadRes, TUploadError>(
         }
         return fileStatus;
       });
+    case "update-progress":
+      return state.map((fileStatus) =>
+        fileStatus.id === action.id
+          ? { ...fileStatus, progress: action.progress }
+          : fileStatus
+      );
   }
 };
 type DropZoneErrorCode = (typeof dropZoneErrorCodes)[number];
@@ -197,6 +209,7 @@ interface UseDropzoneReturn<TUploadRes, TUploadError> {
   rootMessageId: string;
   rootDescriptionId: string;
   getFileMessageId: (id: string) => string;
+  setProgress: (fileName: string, progress: number) => void;
 }
 
 const useDropzone = <TUploadRes, TUploadError = string>(
@@ -232,6 +245,12 @@ const useDropzone = <TUploadRes, TUploadError = string>(
   );
 
   const [fileStatuses, dispatch] = useReducer(fileStatusReducer, []);
+  const setProgress = useCallback((fileName: string, progress: number) => {
+    const match = fileStatuses.find((f) => f.fileName === fileName);
+    if (match) {
+      dispatch({ type: "update-progress", id: match.id, progress });
+    }
+  }, [fileStatuses]);
 
   const isInvalid = useMemo(() => {
     return (
@@ -381,6 +400,7 @@ const useDropzone = <TUploadRes, TUploadError = string>(
     isInvalid,
     rootError,
     isDragActive: dropzone.isDragActive,
+    setProgress,
   };
 };
 
@@ -399,6 +419,7 @@ const DropZoneContext = createContext<UseDropzoneReturn<any, any>>({
   rootMessageId: "",
   rootDescriptionId: "",
   getFileMessageId: () => "",
+  setProgress: () => {},
 });
 
 const useDropzoneContext = <TUploadRes, TUploadError>() => {
@@ -769,6 +790,7 @@ DropzoneTrigger.displayName = "DropzoneTrigger";
 
 type InfiniteProgressProps = React.HTMLAttributes<HTMLDivElement> & {
   status: "pending" | "success" | "error";
+  progress?: number;
 }
 
 const valueTextMap = {

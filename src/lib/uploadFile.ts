@@ -7,7 +7,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 /**
  * Upload a file to Firebase Storage and log metadata in Firestore.
  */
-export async function uploadFile(file: File): Promise<void> {
+export async function uploadFile(file: File, onProgress?: (percent: number) => void): Promise<void> {
     const user = auth.currentUser;  // Get the currently logged-in user
 
     if (!user) {
@@ -23,7 +23,10 @@ export async function uploadFile(file: File): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         uploadTask.on(
             "state_changed",
-            null,  // You can handle progress here
+            (snapshot) => {
+                const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                if (onProgress) onProgress(Math.round(percent));
+            },
             (error) => reject(error),  // Handle error
             async () => {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);  // Get URL after upload

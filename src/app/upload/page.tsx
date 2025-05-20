@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'; // Import React hooks for lifecycle
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
 import { auth } from '@/lib/firebase'; // Import initialized Firebase app
 import { uploadFile } from "@/lib/uploadFile";
+import { Badge } from "@/components/ui/badge";
   import {
     Dropzone,
     DropZoneArea,
@@ -38,7 +39,7 @@ function MultiFiles({ user }: { user: User }) {
     onDropFile: async (file) => {
       try {
         if (!user) throw new Error("User must be logged in to upload files.");
-        await uploadFile(file);
+        await uploadFile(file, (percent) => dropzone.setProgress(file.name, percent));
         return { status: "success", result: undefined };  // ✅ Include required result key
       } catch (error) {
         console.error("Upload failed", error);
@@ -104,9 +105,16 @@ function MultiFiles({ user }: { user: User }) {
                   </DropzoneRemoveFile>
                 </div>
               </div>
-              <InfiniteProgress status={file.status} />
+              <InfiniteProgress status={file.status} progress={file.progress ?? 0} />
+              {file.status === "success" && (
+                <Badge variant="outline">Submitted for review ✅</Badge>
+              )}
               <div className="flex justify-between text-sm text-muted-foreground">
-                <p>{(file.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                <p>
+                  {file.file.size > 1024 * 1024
+                    ? `${(file.file.size / (1024 * 1024)).toFixed(2)} MB`
+                    : `${(file.file.size / 1024).toFixed(1)} KB`}
+                </p>
                 <DropzoneFileMessage />
               </div>
             </DropzoneFileListItem>
