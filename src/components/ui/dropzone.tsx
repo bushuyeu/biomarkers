@@ -768,13 +768,8 @@ const DropzoneTrigger = forwardRef<HTMLLabelElement, DropzoneTriggerProps>(
       >
         {children}
         <input
-          {...context.getInputProps({
-            style: {
-              display: undefined,
-            },
-            className: "sr-only",
-            tabIndex: undefined,
-          })}
+          {...context.getInputProps()}
+          hidden
           aria-describedby={
             context.isInvalid
               ? [context.rootMessageId, ...fileMessageIds].join(" ")
