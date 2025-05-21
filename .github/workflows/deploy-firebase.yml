@@ -31,7 +31,7 @@ jobs:
           echo "Error: Failed to decode FIREBASE_SERVICE_ACCOUNT_JSON."
           exit 1
           }
-          shell: bash
+        shell: bash
 
       - name: Set GOOGLE_APPLICATION_CREDENTIALS environment variable
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/credentials.json" >> $GITHUB_ENV
