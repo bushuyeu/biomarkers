@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'; // Import React hooks for lifecycle and state
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
 import { auth } from '@/lib/firebase'; // Import initialized Firebase app
-import { uploadFile } from "@/lib/uploadFile";
+import { uploadAndRunOCR } from "@/lib/uploadAndRunOCR";
 import { Badge } from "@/components/ui/badge";
   import {
     Dropzone,
@@ -39,7 +39,7 @@ function MultiFiles({ user }: { user: User }) {
     onDropFile: async (file) => {
       try {
         if (!user) throw new Error("User must be logged in to upload files.");
-        await uploadFile(file, (percent) => dropzone.setProgress(file.name, percent));
+        await uploadAndRunOCR(file, "awesome-biomarkers", user.uid, (percent) => dropzone.setProgress(file.name, percent));
         return { status: "success", result: undefined };  // ✅ Include required result key
       } catch (error) {
         console.error("Upload failed", error);

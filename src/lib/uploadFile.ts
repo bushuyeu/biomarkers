@@ -1,13 +1,13 @@
 // src/lib/uploadFile.ts
 
-import { storage, db, auth } from "./firebase";  // Import Firebase instances
+import { storage, firestore, auth } from "./firebase";  // Import Firebase instances
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 /**
  * Upload a file to Firebase Storage and log metadata in Firestore.
  */
-export async function uploadFile(file: File, onProgress?: (percent: number) => void): Promise<void> {
+export async function uploadFile(file: File, onProgress?: (percent: number) => void): Promise<string> {
     const user = auth.currentUser;  // Get the currently logged-in user
 
     if (!user) {
@@ -20,7 +20,7 @@ export async function uploadFile(file: File, onProgress?: (percent: number) => v
 
     const uploadTask = uploadBytesResumable(fileRef, file);  // Start the upload
 
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<string>((resolve, reject) => {
         uploadTask.on(
             "state_changed",
             (snapshot) => {
@@ -31,17 +31,12 @@ export async function uploadFile(file: File, onProgress?: (percent: number) => v
             async () => {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);  // Get URL after upload
 
-                // Save metadata in Firestore
-                await addDoc(collection(db, "uploads"), {
-                    uid: user.uid,
-                    fileName: file.name,
-                    downloadURL,
-                    storagePath,
-                    uploadedAt: serverTimestamp(),
-                });
+                // Removed Firestore metadata write
 
-                resolve();  // Upload complete
+                resolve(storagePath);  // Upload complete, return file path
             }
         );
     });
+
+    return storagePath;
 }
