@@ -40,7 +40,7 @@ export async function uploadFile(file: File, onProgress?: (percent: number) => v
             (error) => reject(error),  // Propagate upload errors
             async () => {
                 // Upload complete, get the download URL (not used here, but could be useful)
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                const _downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                 // No Firestore metadata write here
                 resolve(storagePath);  // Resolve with the storage path
             }

@@ -31,7 +31,7 @@ export async function processDocumentFromStorage(path: string): Promise<{
   // 3. Run OCR on the image buffer to extract raw text from the uploaded document
   // This function uses Tesseract.js to convert visual text from scanned lab results into plain text
   // It's a reusable, backend-only utility and returns the raw OCR'd string for downstream processing
-  const extractedText = await runOCR(imageBuffer);
+  const _extractedText = await runOCR(imageBuffer);
 
   // 4. Placeholder: simulate LLM call with mock parsing
   const biomarkers = [
