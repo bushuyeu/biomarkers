@@ -1,5 +1,6 @@
+import * as Sentry from "@sentry/nextjs";
 import { promptRegistry } from "@/prompts/promptVersions";
-import { ParsedLLMOutputSchema } from "./zodSchemas";
+import { ParsedLLMOutputSchema } from "@/lib/zodSchemas";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
@@ -55,7 +56,11 @@ export async function callLLMParser(extractedText: string): Promise<{
     const parsed = ParsedLLMOutputSchema.parse(JSON.parse(content));
     return parsed;
   } catch (error) {
-    console.error("Failed to parse LLM output with Zod schema", error);
+    Sentry.captureException(error, {
+      tags: { scope: "callLLMParser" },
+      extra: { content },
+    });
     throw new Error("Invalid LLM response format");
   }
+  
 }
