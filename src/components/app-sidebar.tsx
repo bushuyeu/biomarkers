@@ -1,6 +1,5 @@
 "use client"
 
-import { User } from "firebase/auth";
 
 import * as React from "react"
 import {
