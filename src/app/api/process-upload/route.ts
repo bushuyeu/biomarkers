@@ -17,8 +17,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing or invalid 'path' field." }, { status: 400 });
     }
 
+    // Extract tenantId and fileId from the path
+    const parts = path.split('/');
+    const tenantId = parts[1]; // assuming format: /tenants/{tenantId}/files/{fileId}
+    const fileId = parts[3];
     // Run the document processing pipeline (OCR + LLM simulation)
-    const result = await processDocumentFromStorage(path);
+    const result = await processDocumentFromStorage(path, tenantId, fileId);
 
     // Respond with the extracted biomarkers and test date
     return NextResponse.json({ success: true, result });
