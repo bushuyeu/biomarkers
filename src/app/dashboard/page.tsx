@@ -1,15 +1,9 @@
+// dashboard/page.tsx
+
 'use client'; // Enables client-side rendering for this component in Next.js App Router
 
-import { useEffect, useState } from 'react'; // Import React hooks for lifecycle and state
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
-import { auth } from '@/lib/firebase'; // Import initialized Firebase app
-
-// Import required Firebase Auth utilities
-import {
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
-
+import { useAuthUser } from '@/lib/AuthListener';
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
@@ -21,20 +15,13 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import data from "./data.json"
 
 export default function Page() {
-  const [user, setUser] = useState<User | null>(null); // State to track signed-in user
-  const router = useRouter(); // Get router instance for navigation
-  
-  // Check auth state on component mount
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/'); // Redirect to landing page if no user is logged in
-      } else {
-        setUser(currentUser); // Otherwise set the user state
-      }
-    });
-    return () => unsubscribe(); // Clean up subscription on unmount
-  }, [router]);
+  const user = useAuthUser();
+  const router = useRouter();
+
+  if (user === null) {
+    router.push('/');
+    return null;
+  }
 
   return (
     <SidebarProvider

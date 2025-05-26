@@ -1,3 +1,6 @@
+// upload/page.tsx
+
+
 'use client'; // Enables client-side rendering for this component in Next.js App Router
 
 import { useEffect, useState } from 'react'; // Import React hooks for lifecycle and state

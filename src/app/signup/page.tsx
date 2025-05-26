@@ -1,6 +1,9 @@
+// signup/page.tsx
+
 'use client'; // Ensures this file runs on the client side in Next.js App Router
 
 // Import core dependencies
+import { useState } from 'react';
 import { Button } from '@/components/ui/button'; // shadcn/ui Button component
 import { useRouter } from 'next/navigation'; // Next.js router for programmatic navigation
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth'; // Firebase sign-in functions
@@ -8,15 +11,19 @@ import { auth } from '@/lib/firebase'; // Firebase app instance
 
 export default function LandingPage() { // Define the main landing page component
   const router = useRouter(); // Initialize the router
+  const [loading, setLoading] = useState(false); // Track sign-in loading state
 
   // Handle Google Sign-In flow
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider(); // Create Google auth provider
     try {
-      await signInWithPopup(auth, provider); // Trigger the Firebase popup sign-in
-      router.push('/dashboard'); // Redirect to dashboard on success
+      setLoading(true); // Activate loading state
+      await signInWithPopup(auth, provider); // Sign in with Google
+      router.push('/dashboard'); // Redirect to dashboard
     } catch (err) {
-      console.error('Sign-in error:', err); // Log any sign-in errors
+      console.error('Sign-in error:', err); // Log any error
+    } finally {
+      setLoading(false); // Always turn off loading
     }
   };
 
@@ -52,8 +59,8 @@ export default function LandingPage() { // Define the main landing page componen
           </div>
 
           {/* Sign-in button */}
-          <Button onClick={handleSignIn} className="w-full">
-            Sign in with Google
+          <Button onClick={handleSignIn} className="w-full" disabled={loading}>
+            {loading ? 'Signing in…' : 'Sign in with Google'}
           </Button>
 
           {/* Terms and Privacy links */}

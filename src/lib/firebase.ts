@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, setDoc, getDoc, doc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -18,3 +18,20 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const storage = getStorage(app, "awesome-biomarkers.firebasestorage.app");
+
+export async function ensureUserDocument(user: { uid: string, email: string | null }) {
+    // Construct a reference to the user's document in Firestore
+    const documentRef = doc(firestore, 'users', user.uid);
+
+    // Check if the document already exists
+    const snapshot = await getDoc(documentRef);
+    if (!snapshot.exists()) {
+        // If it doesn't exist, create it with default fields
+        await setDoc(documentRef, {
+            email: user.email,
+            role: 'user', // Default role for end users
+            tenantId: 'awesome-biomarkers-operator', // B2C tenant ID
+            createdAt: new Date().toISOString(),
+        });
+    }
+}
