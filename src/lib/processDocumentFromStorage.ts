@@ -40,7 +40,7 @@ export async function processDocumentFromStorage(
     const rawLLMResponse = await callLLMParser(extractedText); // Actual LLM call with OpenRouter
     const parsed = ParsedLLMOutputSchema.parse(rawLLMResponse); // Validate response using Zod
 
-    const testDate = parsed.testMetadata.date; // Extract test date from parsed LLM output
+    const _testDate = parsed.testMetadata.date; // Extract test date from parsed LLM output
 
     // 5. Store OCR text, review status, and parsed LLM output in Firestore
     await setDoc(
