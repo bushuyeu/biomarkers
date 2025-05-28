@@ -1,9 +1,17 @@
 import * as Sentry from "@sentry/nextjs";
 import { useContext } from "react";
 import { AuthContext } from "./auth-provider";
+import type { User } from "firebase/auth";
+
+export type UseAuthResult = {
+    user: User | null;
+    role: string | null;
+    tenantId: string | null;
+    loading: boolean;
+};
 
 // Hook to access user and any extended properties like role, metadata, and loading state
-export const useAuth = () => {
+export const useAuth = (): UseAuthResult => {
     const context = useContext(AuthContext); // Get the full auth context from the provider
 
     if (!context) {
@@ -14,7 +22,8 @@ export const useAuth = () => {
 
     return {
         user: context.user,                 // Firebase user object
-        userMetadata: context.userMetadata, // Additional Firestore user fields like role/tenantId
+        role: context.role,
+        tenantId: context.tenantId,
         loading: context.loading            // Loading state for async auth resolution
     };
 };

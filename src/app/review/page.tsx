@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { firestore } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useAuth } from "@/auth/auth-provider";
@@ -33,11 +33,12 @@ export default function ReviewPage() {
 
     const router = useRouter();
 
+    const allowedRoles = useMemo(() => ["admin", "reviewer", "end-user"], []);
+
     useEffect(() => {
         if (!user || !tenantId || !role) return; // 🛑 Wait for valid auth context
 
         // ✅ Restrict access only to allowed roles
-        const allowedRoles = ["admin", "reviewer", "end-user"];
         if (!allowedRoles.includes(role)) {
             console.warn("Unauthorized role attempting to access reviewer page:", role);
             setLoading(false);
@@ -59,6 +60,7 @@ export default function ReviewPage() {
                 });
 
                 setFiles(docs);
+                router.replace("/review"); // 🔄 Replace the current URL with /review to ensure consistent routing state
             } catch (error) {
                 console.error("Error loading files:", error);
             } finally {
@@ -67,7 +69,7 @@ export default function ReviewPage() {
         };
 
         fetchFiles();
-    }, [user, tenantId, role]);
+    }, [user, tenantId, role, allowedRoles, router]);
 
     if (loading) {
         return (
@@ -78,7 +80,6 @@ export default function ReviewPage() {
     }
 
     // 🧱 Show error if role is not allowed
-    const allowedRoles = ["admin", "reviewer", "end-user"];
     if (!allowedRoles.includes(role ?? "")) {
         return (
             <main className="p-6">

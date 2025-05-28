@@ -12,7 +12,6 @@ export interface AuthUserContext {
   role: string | null;
   tenantId: string | null;
   loading: boolean;
-  userMetadata?: Record<string, any>; // Optional field for all additional metadata from Firestore
 }
 
 export const AuthContext = createContext<AuthUserContext>({
@@ -28,7 +27,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     role: null,
     tenantId: null,
     loading: true,
-    userMetadata: undefined,
   });
 
   useEffect(() => {
@@ -49,7 +47,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             role,
             tenantId,
             loading: false,
-            userMetadata: userDocSnap.exists() ? userDocSnap.data() : undefined,
           });
 
           Sentry.setUser({
@@ -63,12 +60,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             displayName: firebaseUser.displayName || "",
           });
         } catch (e) {
+          Sentry.captureException(e); // ✅ Send error to Sentry for observability
           setAuthState({
             user: firebaseUser,
             role: null,
             tenantId: null,
             loading: false,
-            userMetadata: undefined,
           });
         }
       } else {
@@ -77,7 +74,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           role: null,
           tenantId: null,
           loading: false,
-          userMetadata: undefined,
         });
       }
     });

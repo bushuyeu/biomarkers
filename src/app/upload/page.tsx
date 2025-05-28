@@ -3,9 +3,8 @@
 
 'use client'; // Enables client-side rendering for this component in Next.js App Router
 
-import { useEffect, useState } from 'react'; // Import React hooks for lifecycle and state
+import { useEffect } from 'react'; // Import React hooks for lifecycle and state
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
-import { auth } from '@/lib/firebase'; // Import initialized Firebase app
 import { uploadFile } from "@/lib/uploadFile";
 import { Badge } from "@/components/ui/badge";
   import {
@@ -25,10 +24,7 @@ import { Badge } from "@/components/ui/badge";
   import { CloudUploadIcon, Trash2Icon } from "lucide-react";
 
 // Import required Firebase Auth utilities
-import {
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
+import { User } from 'firebase/auth';
 
 
 import { AppSidebar } from "@/components/app-sidebar"

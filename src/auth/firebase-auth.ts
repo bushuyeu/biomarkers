@@ -5,10 +5,20 @@ import { auth } from "@/lib/firebase";
 // Google login
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
-  return await signInWithPopup(auth, provider);
+  try {
+    return await signInWithPopup(auth, provider);
+  } catch (e) {
+    Sentry.captureException(e);
+    throw e;
+  }
 };
 
 // Logout
 export const logout = async () => {
-  return await signOut(auth);
+  try {
+    return await signOut(auth);
+  } catch (e) {
+    Sentry.captureException(e);
+    throw e;
+  }
 };

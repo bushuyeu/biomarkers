@@ -21,7 +21,7 @@ export default function LandingPage() { // Define the main landing page componen
     if (user) {
       router.push('/dashboard'); // Redirect after successful login
     }
-  }, [user]);
+  }, [user, router]);
 
   // Handle Google Sign-In flow
   const handleSignIn = async () => {
