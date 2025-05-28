@@ -1,7 +1,7 @@
+'use client'; // Ensures this file runs on the client side in Next.js App Router
+
 import { useAuthListener } from '@/auth/useAuthListener';
 // signup/page.tsx
-
-'use client'; // Ensures this file runs on the client side in Next.js App Router
 
 // Import core dependencies
 import { useState } from 'react';
