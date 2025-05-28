@@ -14,19 +14,23 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import data from "./data.json"
 
+import { useEffect } from 'react';
+
 export default function Page() {
-  const { user, role } = useAuth();
+  const { user, role, loading } = useAuth();
   const router = useRouter();
 
-  if (!user) {
-    router.push('/');
-    return null;
-  }
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push('/');
+      } else if (role !== 'end-user') {
+        router.push('/unauthorized');
+      }
+    }
+  }, [user, role, loading, router]);
 
-  if (role !== 'end-user') {
-    router.push('/unauthorized');
-    return null;
-  }
+  if (loading) return null;
 
   return (
     <SidebarProvider
