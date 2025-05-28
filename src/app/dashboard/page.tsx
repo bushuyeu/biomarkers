@@ -3,7 +3,7 @@
 'use client'; // Enables client-side rendering for this component in Next.js App Router
 
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
-import { useAuthUser } from '@/lib/AuthListener';
+import { useAuth } from '@/auth/auth-provider';
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
@@ -15,11 +15,16 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import data from "./data.json"
 
 export default function Page() {
-  const user = useAuthUser();
+  const { user, role } = useAuth();
   const router = useRouter();
 
-  if (user === null) {
+  if (!user) {
     router.push('/');
+    return null;
+  }
+
+  if (role !== 'end-user') {
+    router.push('/unauthorized');
     return null;
   }
 

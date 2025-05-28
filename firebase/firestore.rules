@@ -17,6 +17,11 @@ service cloud.firestore {
       allow read: if isReviewerForTenant(resource.data.tenantId);
     }
 
+    // Files: allow reviewers in tenant to read file documents
+    match /tenants/{tenantId}/files/{fileId} {
+      allow read: if isReviewerForTenant(tenantId);
+    }
+
     // Tenants: no direct access for now
     match /tenants/{tenantId} {
       allow read, write: if false;

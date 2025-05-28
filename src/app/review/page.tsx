@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { firestore } from "@/lib/firebase";
-import { collection, getDocs, getDoc, doc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { useAuth } from "@/auth/auth-provider";
+import { useRouter } from "next/navigation"; // Add router for potential redirects
 
 type Biomarker = {
     name: string;
@@ -26,26 +27,28 @@ type FileDoc = {
 };
 
 export default function ReviewPage() {
+    const { user, role, tenantId } = useAuth(); // 🔐 Extract auth context
     const [files, setFiles] = useState<FileDoc[]>([]);
+    const [loading, setLoading] = useState(true); // ⏳ Track loading state manually
+
+    const router = useRouter();
 
     useEffect(() => {
-        const auth = getAuth();
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (!user) return;
+        if (!user || !tenantId || !role) return; // 🛑 Wait for valid auth context
 
+        // ✅ Restrict access only to allowed roles
+        const allowedRoles = ["admin", "reviewer", "end-user"];
+        if (!allowedRoles.includes(role)) {
+            console.warn("Unauthorized role attempting to access reviewer page:", role);
+            setLoading(false);
+            return;
+        }
+
+        const fetchFiles = async () => {
             try {
-                // Fetch user document to get tenantId
-                const userDocRef = doc(firestore, "users", user.uid);
-                const userSnap = await getDoc(userDocRef);
-                const userData = userSnap.data();
-
-                if (!userSnap.exists() || !userData?.tenantId) {
-                    console.error("User record or tenantId not found.");
-                    return;
-                }
-
-                const tenantId = userData.tenantId;
-                const snapshot = await getDocs(collection(firestore, `tenants/${tenantId}/files`));
+                const snapshot = await getDocs(
+                    collection(firestore, `tenants/${tenantId}/files`) // ✅ Use tenantId directly
+                );
 
                 const docs = snapshot.docs.map((docSnap) => {
                     const data = docSnap.data() as Omit<FileDoc, "id">;
@@ -58,17 +61,37 @@ export default function ReviewPage() {
                 setFiles(docs);
             } catch (error) {
                 console.error("Error loading files:", error);
+            } finally {
+                setLoading(false); // ✅ Stop loading state
             }
-        });
+        };
 
-        return () => unsubscribe();
-    }, []);
+        fetchFiles();
+    }, [user, tenantId, role]);
+
+    if (loading) {
+        return (
+            <main className="p-6">
+                <p>Loading files…</p>
+            </main>
+        );
+    }
+
+    // 🧱 Show error if role is not allowed
+    const allowedRoles = ["admin", "reviewer", "end-user"];
+    if (!allowedRoles.includes(role ?? "")) {
+        return (
+            <main className="p-6">
+                <p className="text-red-500 font-semibold">You do not have access to view these files.</p>
+            </main>
+        );
+    }
 
     return (
         <main className="p-6 space-y-6">
             <h1 className="text-2xl font-bold">Review Uploaded Files</h1>
             {files.length === 0 ? (
-                <p>Loading files…</p>
+                <p>No files found.</p>
             ) : (
                 files.map((file) => {
                     let parsed: ParsedLLMOutput | null = null;

@@ -1,3 +1,4 @@
+import { useAuthListener } from '@/auth/useAuthListener';
 // signup/page.tsx
 
 'use client'; // Ensures this file runs on the client side in Next.js App Router
@@ -12,6 +13,8 @@ import { auth } from '@/lib/firebase'; // Firebase app instance
 export default function LandingPage() { // Define the main landing page component
   const router = useRouter(); // Initialize the router
   const [loading, setLoading] = useState(false); // Track sign-in loading state
+
+  useAuthListener();
 
   // Handle Google Sign-In flow
   const handleSignIn = async () => {

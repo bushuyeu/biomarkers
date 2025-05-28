@@ -37,6 +37,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import { RotateCcwIcon, FileIcon } from "lucide-react";
 
+import { useAuth } from "@/auth/useAuth"; // ✅ Add import to use the shared auth context
+
 function MultiFiles({ user }: { user: User }) {
   const dropzone = useDropzone({
     onDropFile: async (file) => {
@@ -129,20 +131,19 @@ function MultiFiles({ user }: { user: User }) {
 }
 
 export default function Page() {
-  const [user, setUser] = useState<User | null>(null); // State to track signed-in user
-  const router = useRouter(); // Get router instance for navigation
-  
-  // Check auth state on component mount
+  const { user, loading } = useAuth(); // ✅ Use shared auth state
+
+  const router = useRouter();
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/'); // Redirect to landing page if no user is logged in
-      } else {
-        setUser(currentUser); // Otherwise set the user state
-      }
-    });
-    return () => unsubscribe(); // Clean up subscription on unmount
-  }, [router]);
+    if (!loading && !user) {
+      router.push('/'); // ✅ Redirect unauthenticated users
+    }
+  }, [loading, user, router]);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading...</div>; // ✅ Display loading indicator
+  }
 
   return (
     <SidebarProvider
@@ -165,5 +166,5 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
