@@ -2,37 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users: everyone can read their own profile
     match /users/{userId} {
       allow read: if request.auth.uid == userId;
-      allow write: if false; // Only written via backend or admin panel
+      allow write: if false;
     }
 
-    // Uploads: user can read/write own uploads
     match /uploads/{uploadId} {
-      allow read, write: if request.auth != null
-        && resource.data.userId == request.auth.uid;
+      // Allow user to create their own uploads
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Allow user to update/delete their uploads
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
 
-      // Allow reviewers to read uploads from users in their tenant
+      // Allow reviewers to read uploads within their tenant
       allow read: if isReviewerForTenant(resource.data.tenantId);
     }
 
-    // Files: allow reviewers in tenant to read file documents
     match /tenants/{tenantId}/files/{fileId} {
       allow read: if isReviewerForTenant(tenantId);
+      allow write: if false;
     }
 
-    // Tenants: no direct access for now
     match /tenants/{tenantId} {
       allow read, write: if false;
     }
 
-    // Custom function
     function isReviewerForTenant(tenantId) {
       let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       return user != null
         && user.tenantId == tenantId
         && (user.role == 'reviewer' || user.role == 'admin');
+    }
+
+    // 🔐 Catch-all: prevent unexpected access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

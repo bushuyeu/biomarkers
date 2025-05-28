@@ -1,6 +1,7 @@
 'use client'; // Ensures this file runs on the client side in Next.js App Router
 
-import { useAuthListener } from '@/auth/useAuthListener';
+import { useEffect } from 'react';
+import { useAuth } from '@/auth/useAuth';
 // signup/page.tsx
 
 // Import core dependencies
@@ -14,7 +15,13 @@ export default function LandingPage() { // Define the main landing page componen
   const router = useRouter(); // Initialize the router
   const [loading, setLoading] = useState(false); // Track sign-in loading state
 
-  useAuthListener();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard'); // Redirect after successful login
+    }
+  }, [user]);
 
   // Handle Google Sign-In flow
   const handleSignIn = async () => {
