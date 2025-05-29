@@ -21,12 +21,15 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/');
-      } else if (role !== 'end-user') {
-        router.push('/unauthorized');
-      }
+    if (loading) return;
+
+    if (!user) {
+      router.push('/');
+    } else if (!role) {
+      // Role not loaded yet – avoid premature redirect
+      return;
+    } else if (role !== 'end-user') {
+      router.push('/unauthorized');
     }
   }, [user, role, loading, router]);
 

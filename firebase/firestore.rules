@@ -8,14 +8,13 @@ service cloud.firestore {
     }
 
     match /uploads/{uploadId} {
-      // Allow user to create their own uploads
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      
-      // Allow user to update/delete their uploads
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-
-      // Allow reviewers to read uploads within their tenant
       allow read: if isReviewerForTenant(resource.data.tenantId);
+    }
+
+    match /tenants/{tenantId}/users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     match /tenants/{tenantId}/files/{fileId} {
@@ -34,7 +33,6 @@ service cloud.firestore {
         && (user.role == 'reviewer' || user.role == 'admin');
     }
 
-    // 🔐 Catch-all: prevent unexpected access
     match /{document=**} {
       allow read, write: if false;
     }

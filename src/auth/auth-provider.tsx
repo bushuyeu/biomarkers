@@ -35,7 +35,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (firebaseUser) {
         try {
           await createUserIfNotExists(firebaseUser);
-          const userDocRef = doc(firestore, "users", firebaseUser.uid);
+          const userDocRef = doc(
+            firestore,
+            "tenants",
+            "Awesome Biomarkers Operator",
+            "users",
+            firebaseUser.uid
+          );
           const userDocSnap = await getDoc(userDocRef);
           let role: string | null = null;
           let tenantId: string | null = null;
