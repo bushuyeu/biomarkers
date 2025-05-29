@@ -5,6 +5,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 import * as Sentry from "@sentry/nextjs";
+import { createUserIfNotExists } from "@/lib/createUserIfNotExists";
 
 // Auth user context type
 export interface AuthUserContext {
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
+          await createUserIfNotExists(firebaseUser);
           const userDocRef = doc(firestore, "users", firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
           let role: string | null = null;
