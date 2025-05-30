@@ -1,6 +1,9 @@
 // Import NextResponse to format API route responses
 import { NextResponse } from "next/server";
 
+// Force dynamic rendering to avoid static optimization errors on API routes
+export const dynamic = "force-dynamic";
+
 // Import the function that processes documents from Firebase Storage
 import { processDocumentFromStorage } from "@/lib/processDocumentFromStorage";
 
