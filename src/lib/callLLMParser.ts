@@ -3,7 +3,13 @@ import { promptRegistry } from "@/prompts/promptVersions"; // Import prompt regi
 import { ParsedLLMOutputSchema } from "@/lib/zodSchemas"; // Import schema for validating LLM output
 import axios from "axios"; // Import axios for HTTP requests
 import fs from "fs"; // Import fs for file system operations
+
 import path from "path"; // Import path for handling file paths
+
+// Early check to ensure the OpenRouter API key is defined before making a request
+if (!process.env.OPENROUTER_API_KEY) {
+  throw new Error("Environment variable OPENROUTER_API_KEY is not set. Please define it in your .env.local or in the Vercel project settings.");
+}
 
 let cachedPromptTemplate: string | null = null; // Cache variable for prompt template to avoid re-reading from disk
 

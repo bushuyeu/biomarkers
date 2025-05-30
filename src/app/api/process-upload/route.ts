@@ -27,9 +27,21 @@ export async function POST(req: Request) {
     console.log("🔔 /api/process-upload POST triggered");
 
     let body: unknown;
+
+    // Check for correct content-type header before parsing
+    const contentType = req.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      console.error("❌ Invalid content-type:", contentType);
+      return NextResponse.json({ error: "Content-Type must be application/json." }, { status: 415 });
+    }
+
     try {
-      // Attempt to parse the request body as JSON
-      body = await req.json();
+      // Safely parse JSON only if content-type is valid
+      const rawBody = await req.text(); // read as text first
+      if (!rawBody || rawBody === "undefined") {
+        throw new Error("Request body is undefined or empty.");
+      }
+      body = JSON.parse(rawBody); // parse manually
     } catch (e) {
       // Log and report error if JSON parsing fails
       console.error("❌ Failed to parse JSON body:", e);
