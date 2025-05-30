@@ -3,8 +3,8 @@
 import { adminBucket } from "./firebaseAdmin"; // Import Admin SDK bucket for file download
 import axios from "axios"; // Import axios for HTTP requests
 import { runOCR } from "./runOCR"; // Import OCR function to extract text from images
-import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions to create document references and set documents
-import { firestore } from "./firebase"; // Import initialized Firestore instance
+import { doc, setDoc } from "firebase-admin/firestore";
+import { adminDb } from "./firebaseAdmin";
 import { ParsedLLMOutputSchema } from "./zodSchemas"; // Import Zod schema for validating parsed LLM output
 import type { ParsedLLMOutput } from "./zodSchemas"; // Import TypeScript type for parsed LLM output
 import { callLLMParser } from "./callLLMParser"; // ✅ Import real LLM call logic
@@ -25,6 +25,18 @@ export async function processDocumentFromStorage(
     tenantId: string, // Tenant ID for Firestore pathing
     fileId: string // File ID for Firestore document ID
 ): Promise<Pick<ParsedLLMOutput, "biomarkers"> & { testDate: string }> {
+    Sentry.addBreadcrumb({
+        message: "📥 processDocumentFromStorage triggered",
+        category: "upload",
+        level: "info",
+        data: { path, tenantId, fileId },
+    });
+
+    Sentry.captureMessage("Started processing document", {
+        level: "info",
+        extra: { path, tenantId, fileId },
+    });
+
     // 1. Get file reference and download contents using Admin SDK
     const file = adminBucket.file(path); // Get file reference using Admin SDK
     const [fileBuffer] = await file.download(); // Download file directly as a buffer
@@ -33,7 +45,7 @@ export async function processDocumentFromStorage(
     // Note: Admin SDK file object does not provide MIME type directly, so fallback to file metadata
     const [metadata] = await file.getMetadata();
     const mimeType = metadata.contentType; // Get MIME type from metadata
-    Sentry.captureMessage("🧾 Processing file with MIME type", { // Log processing info to Sentry
+    Sentry.captureMessage("Processing file with MIME type", { // Log processing info to Sentry
         level: "info", // Set log level to info
         extra: {
             path, // Include file path in log
@@ -79,9 +91,16 @@ export async function processDocumentFromStorage(
     const _testDate = parsed.testMetadata.date; // Extract test date from parsed LLM output
     const testType = parsed.testMetadata.type ?? "unknown"; // Use fallback "unknown" if undefined
 
+    Sentry.addBreadcrumb({
+        message: " Writing parsed LLM output to Firestore",
+        category: "firestore",
+        level: "info",
+        data: { tenantId, fileId, testType },
+    });
+
     // 5. Store OCR text or raw content, review status, and parsed LLM output in Firestore
     await setDoc(
-        doc(firestore, `tenants/${tenantId}/files/${fileId}`), // Reference Firestore document for this file
+        doc(adminDb, `tenants/${tenantId}/files/${fileId}`), // Reference Firestore document for this file
         {
             ocrText: extractedText, // Raw OCR output or raw text content
             reviewStatus: "pending", // Default status for reviewers
@@ -90,6 +109,14 @@ export async function processDocumentFromStorage(
         },
         { merge: true } // Merge with existing document data
     );
+    Sentry.captureMessage("Firestore write succeeded", {
+        level: "info",
+        extra: {
+            tenantId,
+            fileId,
+            testType,
+        },
+    });
 
     // 6. Return the validated structure
     return {
