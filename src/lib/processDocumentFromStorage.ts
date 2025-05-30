@@ -48,6 +48,7 @@ export async function processDocumentFromStorage(
         {
             ocrText: extractedText, // Raw OCR output
             reviewStatus: "pending", // Default status for reviewers
+            testType: parsed.testMetadata.type,
             llmOutput: JSON.stringify(parsed), // Store full validated LLM output (as a string for later JSON.parse)
         },
         { merge: true }
