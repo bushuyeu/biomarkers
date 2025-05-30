@@ -65,7 +65,7 @@ export async function callLLMParser(extractedText: string): Promise<{
       category: "llm",
       message: "Successfully parsed LLM response",
       data: { content },
-      level: Sentry.Severity.Info,
+      level: "info",
     });
 
     return parsed; // Return parsed result
