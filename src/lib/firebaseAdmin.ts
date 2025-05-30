@@ -1,27 +1,72 @@
-// Import functions to initialize and configure the Firebase Admin app
-import { initializeApp, cert, getApps } from "firebase-admin/app"; // Used for app initialization and authentication
+// Import necessary Firebase Admin modules for app, Firestore, and Storage
+import * as admin from "firebase-admin";
 
-// Import Firestore functions to interact with the Firebase Firestore database
-import { getFirestore } from "firebase-admin/firestore"; // Provides access to Firestore database
+// Import Sentry for capturing initialization errors and debugging info
+import * as Sentry from "@sentry/nextjs";
 
-// Import Storage functions to interact with Firebase Cloud Storage
-import { getStorage } from "firebase-admin/storage"; // Provides access to Cloud Storage
+import type { Bucket } from "@google-cloud/storage";
 
-// Parse the service account credentials from the FIREBASE_SERVICE_ACCOUNT environment variable
-// This variable should contain a stringified JSON object of the service account credentials
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!); // Parse JSON string to object for Firebase admin authentication
+// Declare top-level variables to cache initialized instances
+let adminApp: admin.app.App;
+let _adminDb: admin.firestore.Firestore;
+let _adminBucket: Bucket;
 
-// Initialize the Firebase Admin app only if it hasn't been initialized already
-// This check avoids duplicate initialization errors when running in server environments
-if (!getApps().length) { // Check if no Firebase apps have been initialized yet
-    initializeApp({
-        credential: cert(serviceAccount), // Authenticate using the parsed service account credentials
-        storageBucket: "awesome-biomarkers.appspot.com", // Set default Cloud Storage bucket for file operations
-    });
+/**
+ * Lazily initialize the Firebase Admin SDK only once.
+ */
+function getFirebaseAdmin() {
+    // If app is already initialized, return the existing instance
+    if (!adminApp) {
+        try {
+            // Use existing initialized app if present; otherwise initialize it
+            adminApp = admin.apps.length
+                ? admin.app()
+                : admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId: process.env.FIREBASE_PROJECT_ID,
+                        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                        // Replace escaped newlines in the private key
+                        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+                    }),
+                    storageBucket: process.env.FIREBASE_STORAGE_BUCKET, // Set default storage bucket
+                });
+
+            // Log successful initialization in Sentry for observability
+            Sentry.addBreadcrumb({
+                message: "Firebase Admin SDK initialized",
+                category: "firebase",
+                level: "info",
+            });
+        } catch (error) {
+            // Capture any errors during initialization
+            Sentry.captureException(error, {
+                extra: { message: "Failed to initialize Firebase Admin SDK" },
+            });
+            throw error;
+        }
+    }
+
+    return adminApp;
 }
 
-// Export a Firestore instance with admin privileges for accessing the Firestore database
-export const adminDb = getFirestore(); // Get Firestore database instance from the initialized app
+/**
+ * Lazily return a Firestore instance.
+ */
+export function getAdminDb() {
+    if (!_adminDb) {
+        const app = getFirebaseAdmin(); // Ensure SDK is initialized
+        _adminDb = admin.firestore(app); // Initialize Firestore
+    }
+    return _adminDb;
+}
 
-// Export a Cloud Storage bucket instance with admin privileges for file read/write access
-export const adminBucket = getStorage().bucket(); // Get default Cloud Storage bucket instance from the initialized app
+/**
+ * Lazily return a Cloud Storage bucket instance.
+ */
+export function getAdminBucket() {
+    if (!_adminBucket) {
+        const app = getFirebaseAdmin(); // Ensure SDK is initialized
+        _adminBucket = admin.storage(app).bucket(process.env.FIREBASE_STORAGE_BUCKET); // Initialize Storage bucket
+    }
+    return _adminBucket;
+}

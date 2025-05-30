@@ -1,96 +1,100 @@
-// Import NextResponse to format API route responses
+// Import NextResponse to create HTTP responses in API routes
 import { NextResponse } from "next/server";
 
-// Force dynamic rendering to avoid static optimization errors on API routes
+// Configure this API route to always be dynamically rendered
 export const dynamic = "force-dynamic";
+// Allow dynamic parameters in this route
 export const dynamicParams = true;
 
-// Import the function that processes documents from Firebase Storage
-import { processDocumentFromStorage } from "@/lib/processDocumentFromStorage";
-
-// Import Sentry for error reporting and logging
+// Import Sentry for error logging and monitoring
 import * as Sentry from "@sentry/nextjs";
-
-// Import Zod library to validate request payloads
+// Import Zod to validate incoming request data
 import { z } from "zod";
 
-// Define the expected shape of the incoming request using Zod schema
+// Define the expected shape of the request body using Zod schema validation
 const UploadSchema = z.object({
-  path: z.string().min(1),       // 'path' must be a non-empty string
-  tenantId: z.string().min(1),   // 'tenantId' must be a non-empty string
-  userId: z.string().min(1),     // 'userId' must be a non-empty string
+  path: z.string().min(1),      // Require a non-empty string for 'path'
+  tenantId: z.string().min(1),  // Require a non-empty string for 'tenantId'
+  userId: z.string().min(1),    // Require a non-empty string for 'userId'
 });
 
-/**
- * Handles POST requests to the /api/process-upload endpoint.
- * Validates input, extracts fileId, and processes the document in Firebase Storage.
- */
+// Define the POST handler for this API route
 export async function POST(req: Request) {
   try {
-    // Log when the endpoint is hit
+    // Log that the route has been triggered
     console.log("🔔 /api/process-upload POST triggered");
 
-    let body: unknown;
-    let rawBody = ""; // Initialize rawBody to ensure it's defined in catch scope
+    let body: unknown;   // Will store the parsed request body
+    let rawBody = "";    // Will store the raw text body for debugging purposes
 
-    // Check for correct content-type header before parsing
+    // Extract the Content-Type header from the incoming request
     const contentType = req.headers.get("content-type") || "";
+    // Ensure the Content-Type is 'application/json'
     if (!contentType.includes("application/json")) {
-      console.error("❌ Invalid content-type:", contentType);
+      console.error("❌ Invalid content-type:", contentType); // Log the error
+      // Return a 415 Unsupported Media Type error
       return NextResponse.json({ error: "Content-Type must be application/json." }, { status: 415 });
     }
 
     try {
-      // Read the request body as raw text so we can safely handle empty or malformed input
-      rawBody = await req.text(); // read as text first
+      // Read the raw request body as plain text
+      rawBody = await req.text();
+      // Throw an error if the body is empty or undefined
       if (!rawBody || rawBody.trim() === "" || rawBody === "undefined") {
         throw new Error("Request body is undefined or empty.");
       }
-      body = JSON.parse(rawBody); // parse manually
+      // Parse the JSON string into a JavaScript object
+      body = JSON.parse(rawBody);
     } catch (e) {
-      // Log and report error if JSON parsing fails
+      // Log the parsing error and raw body content
       console.error("❌ Failed to parse JSON body. Raw content was:", rawBody, "\nError:", e);
+      // Send the error to Sentry
       Sentry.captureException(e);
+      // Return a 400 Bad Request error for malformed JSON
       return NextResponse.json({ error: "Malformed JSON in request body." }, { status: 400 });
     }
 
-    let path: string;
-    let userId: string;
-    let tenantId: string;
-
     try {
-      // Validate and extract fields from the request body using the Zod schema
-      ({ path, userId, tenantId } = UploadSchema.parse(body));
+      // Validate and extract the required fields using the Zod schema
+      const { path, userId, tenantId } = UploadSchema.parse(body);
+
+      // Split the path string by '/' to get individual parts
+      const parts = path.split("/");
+      // Extract the last part of the path as the fileId
+      const fileId = parts[parts.length - 1];
+
+      // Log that the document processing is starting
+      console.log("🧠 Starting document processing:", { path, tenantId, fileId });
+
+      // Dynamically import the processing function to avoid build-time evaluation
+      const { processDocumentFromStorage } = await import("@/lib/processDocumentFromStorage");
+
+      // Add a breadcrumb in Sentry to trace the function call
+      Sentry.addBreadcrumb({
+        message: "Calling processDocumentFromStorage", // Message to appear in Sentry logs
+        level: "info", // Log level
+        data: { path, tenantId, fileId }, // Additional metadata
+      });
+
+      // Call the processing function with the provided inputs
+      const result = await processDocumentFromStorage(path, tenantId, fileId, userId);
+
+      // Return a successful JSON response with the result
+      return NextResponse.json({ success: true, result });
     } catch (err) {
-      // Log and report schema validation errors
-      console.error("❌ Invalid input schema:", err);
+      // Log any validation or runtime processing errors
+      console.error("❌ Invalid input or processing error:", err);
+      // Capture the exception with Sentry
       Sentry.captureException(err);
-      return NextResponse.json({ error: "Invalid request body structure." }, { status: 400 });
+      // Return a 400 Bad Request error for processing failures
+      return NextResponse.json({ error: "Failed to process request." }, { status: 400 });
     }
-
-    // Split the 'path' into parts to extract the fileId
-    const parts = path.split('/'); // Split the path into its segments
-    const fileId = parts[parts.length - 1]; // Use the last segment as fileId
-
-    // Log the start of processing with context
-    console.log("🧠 Starting document processing:", { path, tenantId, fileId });
-
-    // Add a Sentry breadcrumb for tracking execution flow
-    Sentry.addBreadcrumb({
-        message: "Calling processDocumentFromStorage",
-        level: "info",
-        data: { path, tenantId, fileId }
-    });
-
-    // Call processing logic and pass userId to enforce ownership checks
-    const result = await processDocumentFromStorage(path, tenantId, fileId, userId);
-
-    // Respond to the client with the result of the processing
-    return NextResponse.json({ success: true, result });
   } catch (error) {
-    // Catch any unhandled errors, log and report them
+    // Catch any unhandled errors in the top-level try block
     console.error("❌ Error in /api/process-upload:", error);
+    // Report the error to Sentry
     Sentry.captureException(error);
+    // Return a generic 500 Internal Server Error response
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }
