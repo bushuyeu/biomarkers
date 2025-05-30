@@ -4,9 +4,11 @@ import { adminBucket } from "./firebaseAdmin"; // Import Admin SDK bucket for fi
 import { runOCR } from "./runOCR"; // Import OCR function to extract text from images
 import { adminDb } from "./firebaseAdmin";
 import { ParsedLLMOutputSchema } from "./zodSchemas"; // Import Zod schema for validating parsed LLM output
+import { FileMetadataSchema } from "./zodSchemas";
 import type { ParsedLLMOutput } from "./zodSchemas"; // Import TypeScript type for parsed LLM output
 import { callLLMParser } from "./callLLMParser"; // ✅ Import real LLM call logic
 import * as Sentry from "@sentry/nextjs"; // Import Sentry for error tracking and logging
+
 
 /**
  * Processes a document stored in Firebase Storage:
@@ -21,7 +23,8 @@ import * as Sentry from "@sentry/nextjs"; // Import Sentry for error tracking an
 export async function processDocumentFromStorage(
     path: string, // Storage path of the file
     tenantId: string, // Tenant ID for Firestore pathing
-    fileId: string // File ID for Firestore document ID
+    fileId: string, // File ID for Firestore document ID
+    userId: string // ID of the user requesting the processing
 ): Promise<Pick<ParsedLLMOutput, "biomarkers"> & { testDate: string }> {
     Sentry.addBreadcrumb({
         message: "📥 processDocumentFromStorage triggered",
@@ -34,6 +37,21 @@ export async function processDocumentFromStorage(
         level: "info",
         extra: { path, tenantId, fileId },
     });
+
+    // Check ownership or reviewer access before processing
+    const fileRef = adminDb.doc(`tenants/${tenantId}/files/${fileId}`); // Reference to the file document
+    const fileSnap = await fileRef.get(); // Retrieve the document snapshot
+
+    if (!fileSnap.exists) {
+        throw new Error("File not found"); // File does not exist
+    }
+
+    const fileData = FileMetadataSchema.parse(fileSnap.data()); // Validate Firestore document with Zod
+
+    const allowedUsers = [fileData.uploaderUserId, ...(fileData.reviewerUserIds || [])]; // Build list of allowed users
+    if (!allowedUsers.includes(userId)) {
+        throw new Error("Unauthorized: user does not have access to this file."); // Throw if user is not authorized
+    }
 
     // 1. Get file reference and download contents using Admin SDK
     const file = adminBucket.file(path); // Get file reference using Admin SDK

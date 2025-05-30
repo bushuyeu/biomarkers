@@ -22,3 +22,10 @@ export const ParsedLLMOutputSchema = z.object({
 });
 
 export type ParsedLLMOutput = z.infer<typeof ParsedLLMOutputSchema>;
+
+export const FileMetadataSchema = z.object({
+  uploaderUserId: z.string(),
+  reviewerUserIds: z.array(z.string()).optional(),
+});
+
+export type FileMetadata = z.infer<typeof FileMetadataSchema>;

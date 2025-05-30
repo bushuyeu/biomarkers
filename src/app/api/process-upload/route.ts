@@ -65,8 +65,8 @@ export async function POST(req: Request) {
         data: { path, tenantId, fileId }
     });
 
-    // Invoke the document processing logic with path, tenant ID, and file ID
-    const result = await processDocumentFromStorage(path, tenantId, fileId);
+    // Call processing logic and pass userId to enforce ownership checks
+    const result = await processDocumentFromStorage(path, tenantId, fileId, userId);
 
     // Respond to the client with the result of the processing
     return NextResponse.json({ success: true, result });
