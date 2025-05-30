@@ -9,25 +9,35 @@ import { processDocumentFromStorage } from "@/lib/processDocumentFromStorage";
  */
 export async function POST(req: Request) {
   try {
-    // Parse the JSON body
-    const { path } = await req.json();
+    // Parse the JSON body from the request
+    const { path, userId, tenantId } = await req.json();
 
-    // Validate that 'path' is provided
+    // Validate that 'path' is provided and is a string
     if (!path || typeof path !== "string") {
       return NextResponse.json({ error: "Missing or invalid 'path' field." }, { status: 400 });
     }
+    // Validate that 'tenantId' is provided and is a string
+    if (!tenantId || typeof tenantId !== "string") {
+      return NextResponse.json({ error: "Missing or invalid 'tenantId' field." }, { status: 400 });
+    }
+    // Validate that 'userId' is provided and is a string
+    if (!userId || typeof userId !== "string") {
+      return NextResponse.json({ error: "Missing or invalid 'userId' field." }, { status: 400 });
+    }
 
-    // Extract tenantId and fileId from the path
-    const parts = path.split('/');
-    const tenantId = parts[1]; // assuming format: /tenants/{tenantId}/files/{fileId}
-    const fileId = parts[3];
-    // Run the document processing pipeline (OCR + LLM simulation)
+    // Extract fileId from the path by splitting on '/' and taking the last segment
+    const parts = path.split('/'); // Split the path into its segments
+    const fileId = parts[parts.length - 1]; // fileId is the last segment of the path
+
+    // Run the document processing pipeline with the provided path, tenantId, and fileId
     const result = await processDocumentFromStorage(path, tenantId, fileId);
 
-    // Respond with the extracted biomarkers and test date
+    // Respond with a success flag and the result from processing
     return NextResponse.json({ success: true, result });
   } catch (error) {
+    // Log any errors that occur during processing
     console.error("Error in /api/process-upload:", error);
+    // Respond with a 500 status code and error message
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }
