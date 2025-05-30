@@ -1,9 +1,8 @@
 // src/lib/processDocumentFromStorage.ts
 
 import { adminBucket } from "./firebaseAdmin"; // Import Admin SDK bucket for file download
-import axios from "axios"; // Import axios for HTTP requests
 import { runOCR } from "./runOCR"; // Import OCR function to extract text from images
-import { doc, setDoc } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 import { adminDb } from "./firebaseAdmin";
 import { ParsedLLMOutputSchema } from "./zodSchemas"; // Import Zod schema for validating parsed LLM output
 import type { ParsedLLMOutput } from "./zodSchemas"; // Import TypeScript type for parsed LLM output
@@ -99,8 +98,7 @@ export async function processDocumentFromStorage(
     });
 
     // 5. Store OCR text or raw content, review status, and parsed LLM output in Firestore
-    await setDoc(
-        doc(adminDb, `tenants/${tenantId}/files/${fileId}`), // Reference Firestore document for this file
+    await adminDb.doc(`tenants/${tenantId}/files/${fileId}`).set(
         {
             ocrText: extractedText, // Raw OCR output or raw text content
             reviewStatus: "pending", // Default status for reviewers
