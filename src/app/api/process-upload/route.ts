@@ -31,6 +31,7 @@ export async function POST(req: Request) {
     console.log("🔔 /api/process-upload POST triggered");
 
     let body: unknown;
+    let rawBody: string; // Declare rawBody outside try so it's accessible in catch
 
     // Check for correct content-type header before parsing
     const contentType = req.headers.get("content-type") || "";
@@ -40,15 +41,15 @@ export async function POST(req: Request) {
     }
 
     try {
-      // Safely parse JSON only if content-type is valid
-      const rawBody = await req.text(); // read as text first
-      if (!rawBody || rawBody === "undefined") {
+      // Read the request body as raw text so we can safely handle empty or malformed input
+      rawBody = await req.text(); // read as text first
+      if (!rawBody || rawBody.trim() === "" || rawBody === "undefined") {
         throw new Error("Request body is undefined or empty.");
       }
       body = JSON.parse(rawBody); // parse manually
     } catch (e) {
       // Log and report error if JSON parsing fails
-      console.error("❌ Failed to parse JSON body:", e);
+      console.error("❌ Failed to parse JSON body. Raw content was:", rawBody, "\nError:", e);
       Sentry.captureException(e);
       return NextResponse.json({ error: "Malformed JSON in request body." }, { status: 400 });
     }
