@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     console.log("🔔 /api/process-upload POST triggered");
 
     let body: unknown;
-    let rawBody: string; // Declare rawBody outside try so it's accessible in catch
+    let rawBody = ""; // Initialize rawBody to ensure it's defined in catch scope
 
     // Check for correct content-type header before parsing
     const contentType = req.headers.get("content-type") || "";
