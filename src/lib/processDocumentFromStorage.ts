@@ -56,6 +56,7 @@ export async function processDocumentFromStorage(
 
     let extractedText: string; // Variable to hold extracted text
 
+    const ocrStart = Date.now(); // Start timing OCR
     if (isImage) {
         // For image files, run OCR to extract plain text
         extractedText = await runOCR(fileBuffer); // Extract plain text using OCR
@@ -64,13 +65,24 @@ export async function processDocumentFromStorage(
         // Convert buffer to string assuming UTF-8 encoding; adjust if necessary for other formats
         extractedText = fileBuffer.toString("utf-8"); // Convert file buffer to UTF-8 string
     }
+    const ocrDuration = Date.now() - ocrStart; // Calculate OCR duration
+    Sentry.captureMessage("OCR duration", {
+        level: "info",
+        extra: { ocrDurationMs: ocrDuration, isImage },
+    });
 
     let parsed: ParsedLLMOutput;
     try {
+        const llmStart = Date.now(); // Start timing LLM
         // 4. Send extracted text or raw content to actual LLM parser
         const rawLLMResponse = await callLLMParser(extractedText); // Actual LLM call with OpenRouter
         // Validate response using Zod schema
         parsed = ParsedLLMOutputSchema.parse(rawLLMResponse);
+        const llmDuration = Date.now() - llmStart; // LLM timing
+        Sentry.captureMessage("LLM parse duration", {
+            level: "info",
+            extra: { llmDurationMs: llmDuration },
+        });
     } catch (error) {
         // Log any errors during LLM call or parsing to Sentry
         Sentry.captureException(error, {
