@@ -2,7 +2,6 @@
 
 import { adminBucket } from "./firebaseAdmin"; // Import Admin SDK bucket for file download
 import { runOCR } from "./runOCR"; // Import OCR function to extract text from images
-import { getFirestore } from "firebase-admin/firestore";
 import { adminDb } from "./firebaseAdmin";
 import { ParsedLLMOutputSchema } from "./zodSchemas"; // Import Zod schema for validating parsed LLM output
 import type { ParsedLLMOutput } from "./zodSchemas"; // Import TypeScript type for parsed LLM output
