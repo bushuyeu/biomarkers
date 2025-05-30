@@ -1,9 +1,8 @@
 // src/lib/processDocumentFromStorage.ts
 
-import { getDownloadURL, ref } from "firebase/storage"; // Import Firebase Storage functions to get file URL and reference
+import { adminBucket } from "./firebaseAdmin"; // Import Admin SDK bucket for file download
 import axios from "axios"; // Import axios for HTTP requests
 import { runOCR } from "./runOCR"; // Import OCR function to extract text from images
-import { storage } from "./firebase"; // Import initialized Firebase storage instance
 import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions to create document references and set documents
 import { firestore } from "./firebase"; // Import initialized Firestore instance
 import { ParsedLLMOutputSchema } from "./zodSchemas"; // Import Zod schema for validating parsed LLM output
@@ -26,16 +25,14 @@ export async function processDocumentFromStorage(
     tenantId: string, // Tenant ID for Firestore pathing
     fileId: string // File ID for Firestore document ID
 ): Promise<Pick<ParsedLLMOutput, "biomarkers"> & { testDate: string }> {
-    // 1. Get public download URL for the file stored in Firebase
-    const fileRef = ref(storage, path); // Reference to the uploaded file in Firebase Storage
-    const fileUrl = await getDownloadURL(fileRef); // Generate public download URL
-
-    // 2. Download the file contents as an ArrayBuffer
-    const fileResponse = await axios.get(fileUrl, { responseType: "arraybuffer" }); // Download file data
-    const fileBuffer = Buffer.from(fileResponse.data); // Convert to buffer for processing
+    // 1. Get file reference and download contents using Admin SDK
+    const file = adminBucket.file(path); // Get file reference using Admin SDK
+    const [fileBuffer] = await file.download(); // Download file directly as a buffer
 
     // 3. Determine file type by MIME type from response headers to decide processing path
-    const mimeType = fileResponse.headers["content-type"]; // Get MIME type from response headers
+    // Note: Admin SDK file object does not provide MIME type directly, so fallback to file metadata
+    const [metadata] = await file.getMetadata();
+    const mimeType = metadata.contentType; // Get MIME type from metadata
     Sentry.captureMessage("🧾 Processing file with MIME type", { // Log processing info to Sentry
         level: "info", // Set log level to info
         extra: {
