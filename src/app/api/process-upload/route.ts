@@ -55,8 +55,20 @@ export async function POST(req: Request) {
     }
 
     try {
+      // Add Sentry breadcrumb before schema validation
+      Sentry.addBreadcrumb({
+          message: "Incoming body before validation",
+          level: "debug",
+          data: { body },
+      });
       // Validate and extract the required fields using the Zod schema
       const { path, userId, tenantId } = UploadSchema.parse(body);
+      // Add Sentry breadcrumb after schema validation
+      Sentry.addBreadcrumb({
+          message: "Parsed input fields from UploadSchema",
+          level: "info",
+          data: { path, userId, tenantId },
+      });
 
       // Split the path string by '/' to get individual parts
       const parts = path.split("/");
