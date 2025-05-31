@@ -1,6 +1,16 @@
 [
   {
-    "origin": ["http://localhost:3000", "https://biomarkr.vercel.app"],
+    "origin": [
+        "http://localhost:3000", 
+        "https://biomrkr.vercel.app",
+        "https://biomarkr.vercel.app",
+        "https://biomrkrs.vercel.app",
+        "https://beempirical.vercel.app",
+        "https://empirical-bio.vercel.app",
+        "https://biomarkers--tau.vercel.app",
+        "https://awesome-biomarkers.vercel.app",
+        "https://biomarkers-pvlk.vercel.app"
+    ],
     "method": ["GET", "PUT", "POST", "OPTIONS"],
     "maxAgeSeconds": 3600,
     "responseHeader": ["Content-Type", "Authorization", "x-goog-resumable"]
