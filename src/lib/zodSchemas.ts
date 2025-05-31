@@ -29,3 +29,14 @@ export const FileMetadataSchema = z.object({
 });
 
 export type FileMetadata = z.infer<typeof FileMetadataSchema>;
+
+
+// UploadRequestSchema is used to validate requests for signed upload URLs
+export const UploadRequestSchema = z.object({
+  path: z.string().min(1), // Firebase Storage path to store the file (e.g., users/{uid}/uploads/{filename})
+  tenantId: z.string().min(1), // ID of the tenant uploading the file
+  userId: z.string().min(1), // ID of the user initiating the upload
+});
+
+// TypeScript type derived from the schema for strong typing in route handlers
+export type UploadRequest = z.infer<typeof UploadRequestSchema>;

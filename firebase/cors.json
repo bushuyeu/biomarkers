@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:3000", "https://biomarkr.vercel.app"],
+    "method": ["GET", "PUT", "POST", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization", "x-goog-resumable"]
+  }
+]

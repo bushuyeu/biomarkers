@@ -40,8 +40,49 @@ function MultiFiles({ user }: { user: User }) {
     onDropFile: async (file) => {
       try {
         if (!user) throw new Error("User must be logged in to upload files.");
-        await uploadFile(file, (percent) => dropzone.setProgress(file.name, percent));
-        return { status: "success", result: undefined };  // ✅ Include required result key
+
+        // Generate the path where the file will be stored in Firebase Storage
+        const storagePath = `users/${user.uid}/uploads/${Date.now()}-${file.name}`;
+
+        // Step 1: Ask backend for a signed upload URL
+        const res = await fetch("/api/create-upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: storagePath,
+            tenantId: "Awesome Biomarkers Operator", // Hardcoded for now
+            userId: user.uid,
+          }),
+        });
+
+        const { signedUrl } = await res.json();
+
+        // Step 2: Upload the file to Firebase Storage using the signed URL
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+          body: file,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error("Failed to upload file to Firebase Storage.");
+        }
+
+        // Step 3: Trigger the processing of the uploaded document
+        await fetch("/api/process-upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: storagePath,
+            tenantId: "Awesome Biomarkers Operator",
+            userId: user.uid,
+          }),
+        });
+
+        // Mark the file as successfully uploaded
+        return { status: "success", result: undefined };
       } catch (error) {
         console.error("Upload failed", error);
         return { status: "error", error: "Failed to upload file" };
