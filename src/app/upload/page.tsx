@@ -5,7 +5,6 @@
 
 import { useEffect } from 'react'; // Import React hooks for lifecycle and state
 import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
-import { uploadFile } from "@/lib/uploadFile";
 import { Badge } from "@/components/ui/badge";
   import {
     Dropzone,

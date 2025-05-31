@@ -1,7 +1,6 @@
 
 
 import { NextResponse } from "next/server"; // Import Next.js response helper
-import { z } from "zod"; // Import Zod for request validation
 import { UploadRequestSchema } from "@/lib/zodSchemas"; // Import shared schema from central location
 import * as Sentry from "@sentry/nextjs"; // Import Sentry for error reporting
 import { getAdminBucket } from "@/lib/firebaseAdmin"; // Import Firebase admin bucket getter
