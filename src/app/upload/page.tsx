@@ -1,8 +1,6 @@
 // upload/page.tsx
 'use client'; // Enables client-side rendering for this component in Next.js App Router
 
-import { useEffect } from 'react'; // Import React hooks for lifecycle and state
-import { useRouter } from 'next/navigation'; // Import Next.js router for client-side navigation
 import { Badge } from "@/components/ui/badge"; // Import Badge component for displaying status labels
   import {
     Dropzone, // Import Dropzone component to handle file drag-and-drop area
@@ -18,7 +16,7 @@ import { Badge } from "@/components/ui/badge"; // Import Badge component for dis
     useDropzone, // Import useDropzone hook to manage dropzone state and logic
   } from "@/components/ui/dropzone"; // Import all dropzone related components and hooks from UI library
 
-  import { CloudUploadIcon, Trash2Icon } from "lucide-react"; // Import icons for UI elements
+  import { CloudUploadIcon, Trash2Icon, RotateCcwIcon, FileIcon } from "lucide-react"; // Add missing icons used in Dropzone components
 
 // Import required Firebase Auth utilities
 import { User } from 'firebase/auth'; // Import User type from Firebase Auth for typing user prop
@@ -28,7 +26,6 @@ import { AppSidebar } from "@/components/app-sidebar" // Import application side
 import { SiteHeader } from "@/components/site-header" // Import site header component
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar" // Import sidebar layout components
 
-import { RotateCcwIcon, FileIcon } from "lucide-react"; // Import additional icons for retry and file display
 
 import { useAuth } from "@/auth/useAuth"; // ✅ Add import to use the shared auth context for user authentication state
 
@@ -156,16 +153,8 @@ function MultiFiles({ user }: { user: User }) { // Define MultiFiles component t
 export default function Page() { // Define main page component for upload route
   const { user, loading } = useAuth(); // ✅ Use shared auth state to get current user and loading status
 
-  const router = useRouter(); // Initialize Next.js router for navigation
-
-  useEffect(() => { // React effect hook to handle redirect logic on auth state change
-    if (!loading && !user) { // If not loading and user is not authenticated
-      router.push('/'); // ✅ Redirect unauthenticated users to home page
-    }
-  }, [loading, user, router]); // Effect depends on loading, user, and router
-
-  if (loading) { // Show loading indicator while auth state is being determined
-    return <div className="p-8 text-center">Loading...</div>; // ✅ Display loading indicator with padding and centered text
+  if (loading || !user) {
+    return <div className="p-8 text-center">Loading...</div>; // Display loading or redirect fallback if not authenticated
   }
 
   return ( // Render main upload page layout with sidebar and header

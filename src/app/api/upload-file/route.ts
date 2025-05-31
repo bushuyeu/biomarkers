@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"; // Import types for handling HTTP requests and responses
-import { getAdminBucket } from "@/lib/firebaseAdmin"; // Import utility to get initialized Firebase Storage bucket
+import { getAdminBucket } from "@/lib/firebaseAdmin"; // Utility to initialize Firebase Storage bucket
 
 // Define a POST handler to receive file uploads
 export async function POST(request: NextRequest) {
