@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server"; // Import types for handling HTTP requests and responses
 import { getAdminBucket } from "@/lib/firebaseAdmin"; // Utility to initialize Firebase Storage bucket
 
@@ -25,6 +26,18 @@ export async function POST(request: NextRequest) {
 
         const bucket = getAdminBucket(); // Get Firebase storage bucket from Admin SDK
 
+        // Log upload metadata to Sentry
+        Sentry.captureMessage("🧾 Upload metadata received", {
+            level: "info",
+            extra: {
+                file: file ? `${file.name} (${file.size} bytes)` : "null",
+                filename,
+                tenantId,
+                userId,
+                path,
+            },
+        });
+
         // Upload file to specified path in Firebase Storage
         await bucket.file(path).save(buffer, {
             contentType: file.type || "application/octet-stream", // Set content type or default
@@ -39,7 +52,11 @@ export async function POST(request: NextRequest) {
         // Return a success response
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("❌ Failed to upload file:", error); // Log error on failure
+        Sentry.captureException(error, {
+            extra: {
+                message: "❌ Failed to upload file",
+            },
+        });
         return NextResponse.json({ error: "Failed to upload file" }, { status: 500 }); // Respond with error message
     }
 }
