@@ -58,11 +58,11 @@ export async function POST(request: NextRequest) {
         // 🧠 Extract fileId from filename by removing the extension for robustness
         const fileId = filename.replace(/\.[^/.]+$/, ""); // remove extension
 
-        // 📝 Store file metadata under the tenant’s file collection in Firestore for later processing
+        // 📝 Store file metadata under the tenant’s user’s file collection in Firestore for later processing
         const { getAdminDb } = await import("@/lib/firebaseAdmin"); // Lazy import Firestore
         const db = getAdminDb(); // Get Firestore instance
 
-        await db.doc(`tenants/${tenantId}/files/${fileId}`).set({
+        await db.doc(`tenants/${tenantId}/users/${userId}/files/${fileId}`).set({
             fileId,
             storagePath: path,
             filename,
