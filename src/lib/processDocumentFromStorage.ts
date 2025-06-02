@@ -50,7 +50,7 @@ export async function processDocumentFromStorage(
         });
 
         // Load the Firestore document representing the uploaded file metadata
-        const fileRef = adminDb.doc(`tenants/${tenantId}/files/${fileId}`);
+        const fileRef = adminDb.doc(`tenants/${tenantId}/users/${userId}/files/${fileId}`);
         const fileSnap = await fileRef.get();
 
         // Throw an error if the file record is missing in Firestore
@@ -150,7 +150,7 @@ export async function processDocumentFromStorage(
         });
 
         // Write the extracted text and parsed LLM output to Firestore document, merging fields
-        await adminDb.doc(`tenants/${tenantId}/files/${fileId}`).set(
+        await adminDb.doc(`tenants/${tenantId}/users/${userId}/files/${fileId}`).set(
             {
                 ocrText: extractedText,               // Store OCR or raw text for review
                 reviewStatus: "pending",              // Set initial review status
