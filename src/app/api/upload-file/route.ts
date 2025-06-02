@@ -1,3 +1,5 @@
+// This API route handles multipart file uploads to Firebase Storage,
+// and writes matching metadata to Firestore so downstream processing can continue.
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server"; // Import types for handling HTTP requests and responses
 import { getAdminBucket } from "@/lib/firebaseAdmin"; // Utility to initialize Firebase Storage bucket
@@ -47,6 +49,23 @@ export async function POST(request: NextRequest) {
                     userId,
                 },
             },
+        });
+
+        // 🧠 Extract fileId from filename (everything before the first dash)
+        const fileId = filename.split("-")[0];
+
+        // 📝 Write basic metadata document to Firestore so /api/process-upload can find it
+        const { getAdminDb } = await import("@/lib/firebaseAdmin"); // Lazy import Firestore
+        const db = getAdminDb(); // Get Firestore instance
+
+        await db.doc(`tenants/${tenantId}/files/${fileId}`).set({
+            fileId,
+            storagePath: path,
+            filename,
+            uploaderUserId: userId,
+            tenantId,
+            createdAt: new Date().toISOString(),
+            reviewStatus: "unprocessed",
         });
 
         // Return a success response
