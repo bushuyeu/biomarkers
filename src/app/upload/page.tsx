@@ -27,7 +27,7 @@ import { SiteHeader } from "@/components/site-header" // Import site header comp
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar" // Import sidebar layout components
 
 
-import { useAuth } from "@/auth/useAuth"; // ✅ Add import to use the shared auth context for user authentication state
+import { useAuth } from "@/auth/useAuth"; // Add import to use the shared auth context for user authentication state
 
 function MultiFiles({ user }: { user: User }) { // Define MultiFiles component that accepts a Firebase User object as prop
   const dropzone = useDropzone({ // Initialize dropzone hook with configuration for file handling
@@ -44,6 +44,7 @@ function MultiFiles({ user }: { user: User }) { // Define MultiFiles component t
           formData.append("path", storagePath); // Pass the desired storage path to the backend
           formData.append("tenantId", "Awesome Biomarkers Operator"); // Pass tenant ID as metadata
           formData.append("userId", user.uid); // Pass user ID as metadata
+          formData.append("filename", file.name); // ✅ Required for backend validation
 
           const uploadRes = await fetch("/api/upload-file", { // Make POST request to backend API to upload file
               method: "POST", // Use POST method for file upload
