@@ -7,18 +7,21 @@ export async function POST(request: NextRequest) {
         // Parse multipart form data from the request
         const formData = await request.formData(); // Await and extract FormData from request
         const file = formData.get("file") as File | null; // Retrieve the file from the form
-        const path = formData.get("path") as string; // Get the desired upload path
         const tenantId = formData.get("tenantId") as string; // Get tenant ID
         const userId = formData.get("userId") as string; // Get user ID
+        const filename = formData.get("filename") as string; // Get original filename
 
         // Validate required form fields
-        if (!file || !path || !tenantId || !userId) {
+        if (!file || !filename || !tenantId || !userId) {
             return NextResponse.json({ error: "Missing file or metadata" }, { status: 400 });
         }
 
         // Read file content into buffer for upload
         const arrayBuffer = await file.arrayBuffer(); // Convert file to ArrayBuffer
         const buffer = Buffer.from(arrayBuffer); // Convert ArrayBuffer to Node.js Buffer
+
+        // Use the custom path provided by the frontend (e.g., including tenant/user hierarchy)
+        const path = formData.get("path") as string;
 
         const bucket = getAdminBucket(); // Get Firebase storage bucket from Admin SDK
 

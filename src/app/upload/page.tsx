@@ -36,7 +36,7 @@ function MultiFiles({ user }: { user: User }) { // Define MultiFiles component t
           if (!user) throw new Error("User must be logged in to upload files."); // Check if user is logged in, throw error if not
 
           // Construct the destination path on Firebase Storage
-          const storagePath = `users/${user.uid}/uploads/${Date.now()}-${file.name}`; // Create unique storage path using user ID and timestamp
+          const storagePath = `tenants/Awesome Biomarkers Operator/users/${user.uid}/uploads/${Date.now()}-${file.name}`; // Create unique storage path using tenant, user ID, and timestamp
 
           // Step 1: Send the file to the backend using FormData
           const formData = new FormData(); // Create new FormData object to send file and metadata
