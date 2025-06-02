@@ -26,6 +26,10 @@ export async function POST(request: NextRequest) {
         // Use the custom path provided by the frontend (e.g., including tenant/user hierarchy)
         const path = formData.get("path") as string;
 
+        if (!path || !path.startsWith("tenants/")) {
+            return NextResponse.json({ error: "Invalid or missing path" }, { status: 400 });
+        }
+
         const bucket = getAdminBucket(); // Get Firebase storage bucket from Admin SDK
 
         // Log upload metadata to Sentry
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Upload file to specified path in Firebase Storage
+        // Upload the file to Firebase Storage at the provided path, e.g., tenants/{tenantId}/users/{userId}/uploads/{filename}
         await bucket.file(path).save(buffer, {
             contentType: file.type || "application/octet-stream", // Set content type or default
             metadata: {
@@ -51,10 +55,10 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // 🧠 Extract fileId from filename (everything before the first dash)
-        const fileId = filename.split("-")[0];
+        // 🧠 Extract fileId from filename by removing the extension for robustness
+        const fileId = filename.replace(/\.[^/.]+$/, ""); // remove extension
 
-        // 📝 Write basic metadata document to Firestore so /api/process-upload can find it
+        // 📝 Store file metadata under the tenant’s file collection in Firestore for later processing
         const { getAdminDb } = await import("@/lib/firebaseAdmin"); // Lazy import Firestore
         const db = getAdminDb(); // Get Firestore instance
 

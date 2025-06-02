@@ -55,6 +55,11 @@ export async function POST(req: Request) {
     }
 
     try {
+      // Send raw and parsed request body to Sentry for debugging
+      Sentry.captureMessage("🧾 Received raw upload request", {
+        level: "info",
+        extra: { rawBody, parsedBody: body },
+      });
       // Add Sentry breadcrumb before schema validation
       Sentry.addBreadcrumb({
           message: "Incoming body before validation",
@@ -75,6 +80,10 @@ export async function POST(req: Request) {
       // Extract the last part of the path as the fileId
       const fileId = parts[parts.length - 1];
 
+      Sentry.captureMessage("🧠 Preparing to process document", {
+        level: "info",
+        extra: { path, tenantId, fileId },
+      });
       // Log that the document processing is starting
       console.log("🧠 Starting document processing:", { path, tenantId, fileId });
 
