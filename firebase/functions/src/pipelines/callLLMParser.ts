@@ -1,6 +1,6 @@
-import * as Sentry from "@sentry/nextjs"; // Import Sentry for error tracking and logging
-import { promptRegistry } from "@/prompts/promptVersions"; // Import prompt registry for prompt file paths
-import { ParsedLLMOutputSchema } from "@/lib/zodSchemas"; // Import schema for validating LLM output
+import * as Sentry from "@sentry/node"; // Import Sentry for error tracking and logging (Cloud Functions)
+import { promptRegistry } from "../prompts/promptVersions"; // Adjusted relative path to shared prompts
+import { ParsedLLMOutputSchema } from "../zodSchemas"; // Import schema for validating LLM output
 import axios from "axios"; // Import axios for HTTP requests
 import fs from "fs"; // Import fs for file system operations
 

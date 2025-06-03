@@ -48,19 +48,20 @@ export const storage = getStorage(app); // Uses bucket from firebaseConfig
 
 // Ensure a Firestore user document exists for the signed-in user
 export async function ensureUserDocument(user: { uid: string, email: string | null }) {
-    // Create a reference to the Firestore document at 'users/{uid}'
-    const documentRef = doc(firestore, 'users', user.uid);
+  // Use the tenant-scoped users subcollection for B2C users
+  const tenantId = "Awesome Biomarkers Operator";
+  const documentRef = doc(firestore, "tenants", tenantId, "users", user.uid);
 
-    // Fetch the document snapshot to check if it already exists
-    const snapshot = await getDoc(documentRef);
-    
-    // If the document doesn't exist, create it with default fields
-    if (!snapshot.exists()) {
-        await setDoc(documentRef, {
-            email: user.email, // User's email address
-            role: 'user', // Default role assignment
-            tenantId: 'awesome-biomarkers-operator', // Static B2C tenant for all app users
-            createdAt: new Date().toISOString(), // Timestamp of document creation
-        });
-    }
+  // Fetch the document snapshot to check if it already exists
+  const snapshot = await getDoc(documentRef);
+
+  // If the document doesn't exist, create it with default fields
+  if (!snapshot.exists()) {
+    await setDoc(documentRef, {
+      email: user.email ?? "",
+      role: "end-user", // Default role assignment
+      tenantId: tenantId, // Link back to parent tenant
+      createdAt: new Date().toISOString(), // Timestamp of document creation
+    });
+  }
 }

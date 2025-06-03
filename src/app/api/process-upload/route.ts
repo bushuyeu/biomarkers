@@ -1,121 +1,99 @@
-// Import NextResponse to create HTTP responses in API routes
-import { NextResponse } from "next/server";
+// Import NextResponse to create HTTP responses in Next.js API routes
+import { NextResponse } from "next/server";           // 👈 Handles JSON responses
 
-// Configure this API route to always be dynamically rendered
-export const dynamic = "force-dynamic";
-// Allow dynamic parameters in this route
-export const dynamicParams = true;
+// Import Sentry for error monitoring in production
+import * as Sentry from "@sentry/nextjs";             // 👈 Sends exceptions / breadcrumbs to Sentry
 
-// Import Sentry for error logging and monitoring
-import * as Sentry from "@sentry/nextjs";
-// Import Zod to validate incoming request data
-import { z } from "zod";
+// Import Zod for request‑body schema validation
+import { z } from "zod";                              // 👈 Runtime validation of incoming JSON
 
-// Define the expected shape of the request body using Zod schema validation
+// Import a typed Firestore instance from your Firebase Admin helper
+import { getFirestore } from "@/lib/firebaseAdmin";   // 👈 Ensures we reuse existing Admin SDK singleton
+
+// Import the project‑wide logger (winston/pino wrapper)
+import { logger } from "@/lib/logger";                // 👈 Uniform structured logging
+
+/* ────────────────────────────────────────────────────────────────────────── *\
+   Route configuration – keep these so the endpoint is always server‑side.
+\* ────────────────────────────────────────────────────────────────────────── */
+export const dynamic = "force-dynamic";               // 👈 Disable ISR / static optimisation
+export const dynamicParams = true;                    // 👈 Allow dynamic route segments
+
+/* ────────────────────────────────────────────────────────────────────────── *\
+   Schema describing the JSON payload we expect from the front‑end.
+\* ────────────────────────────────────────────────────────────────────────── */
 const UploadSchema = z.object({
-  path: z.string().min(1),      // Require a non-empty string for 'path'
-  tenantId: z.string().min(1),  // Require a non-empty string for 'tenantId'
-  userId: z.string().min(1),    // Require a non-empty string for 'userId'
+  path: z.string().min(1),                            // 👈 Full GCS path of uploaded file
+  tenantId: z.string().min(1),                        // 👈 Tenant identifier (namespace)
+  userId: z.string().min(1),                          // 👈 UID of the user who uploaded
 });
 
-// Define the POST handler for this API route
+/* ────────────────────────────────────────────────────────────────────────── *\
+   POST /api/process-upload – enqueue a processing job and return 202 Accepted.
+   All heavy OCR / LLM work is handled asynchronously by a Cloud Function
+   that listens to the “processingQueue” collection.
+\* ────────────────────────────────────────────────────────────────────────── */
 export async function POST(req: Request) {
-  try {
-    // Log that the route has been triggered
-    console.log("🔔 /api/process-upload POST triggered");
+  logger.info("🔔 /api/process-upload POST triggered");          // 👈 Entry log
 
-    let body: unknown;   // Will store the parsed request body
-    let rawBody = "";    // Will store the raw text body for debugging purposes
-
-    // Extract the Content-Type header from the incoming request
-    const contentType = req.headers.get("content-type") || "";
-    // Ensure the Content-Type is 'application/json'
-    if (!contentType.includes("application/json")) {
-      console.error("❌ Invalid content-type:", contentType); // Log the error
-      // Return a 415 Unsupported Media Type error
-      return NextResponse.json({ error: "Content-Type must be application/json." }, { status: 415 });
-    }
-
-    try {
-      // Read the raw request body as plain text
-      rawBody = await req.text();
-      // Throw an error if the body is empty or undefined
-      if (!rawBody || rawBody.trim() === "" || rawBody === "undefined") {
-        throw new Error("Request body is undefined or empty.");
-      }
-      // Parse the JSON string into a JavaScript object
-      body = JSON.parse(rawBody);
-    } catch (e) {
-      // Log the parsing error and raw body content
-      console.error("❌ Failed to parse JSON body. Raw content was:", rawBody, "\nError:", e);
-      // Send the error to Sentry
-      Sentry.captureException(e);
-      // Return a 400 Bad Request error for malformed JSON
-      return NextResponse.json({ error: "Malformed JSON in request body." }, { status: 400 });
-    }
-
-    try {
-      // Send raw and parsed request body to Sentry for debugging
-      Sentry.captureMessage("🧾 Received raw upload request", {
-        level: "info",
-        extra: { rawBody, parsedBody: body },
-      });
-      // Add Sentry breadcrumb before schema validation
-      Sentry.addBreadcrumb({
-          message: "Incoming body before validation",
-          level: "debug",
-          data: { body },
-      });
-      // Validate and extract the required fields using the Zod schema
-      const { path, userId, tenantId } = UploadSchema.parse(body);
-      // Add Sentry breadcrumb after schema validation
-      Sentry.addBreadcrumb({
-          message: "Parsed input fields from UploadSchema",
-          level: "info",
-          data: { path, userId, tenantId },
-      });
-
-      // Split the path string by '/' to get individual parts
-      const parts = path.split("/");
-      // Extract the last part of the path as the fileId
-      const fileId = parts[parts.length - 1];
-
-      Sentry.captureMessage("🧠 Preparing to process document", {
-        level: "info",
-        extra: { path, tenantId, fileId },
-      });
-      // Log that the document processing is starting
-      console.log("🧠 Starting document processing:", { path, tenantId, fileId });
-
-      // Dynamically import the processing function to avoid build-time evaluation
-      const { processDocumentFromStorage } = await import("@/lib/processDocumentFromStorage");
-
-      // Add a breadcrumb in Sentry to trace the function call
-      Sentry.addBreadcrumb({
-        message: "Calling processDocumentFromStorage", // Message to appear in Sentry logs
-        level: "info", // Log level
-        data: { path, tenantId, fileId }, // Additional metadata
-      });
-
-      // Call the processing function with the provided inputs
-      const result = await processDocumentFromStorage(path, tenantId, fileId, userId);
-
-      // Return a successful JSON response with the result
-      return NextResponse.json({ success: true, result });
-    } catch (err) {
-      // Log any validation or runtime processing errors
-      console.error("❌ Invalid input or processing error:", err);
-      // Capture the exception with Sentry
-      Sentry.captureException(err);
-      // Return a 400 Bad Request error for processing failures
-      return NextResponse.json({ error: "Failed to process request." }, { status: 400 });
-    }
-  } catch (error) {
-    // Catch any unhandled errors in the top-level try block
-    console.error("❌ Error in /api/process-upload:", error);
-    // Report the error to Sentry
-    Sentry.captureException(error);
-    // Return a generic 500 Internal Server Error response
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+  /* ---- 1. Guard content‑type ------------------------------------------------ */
+  const contentType = req.headers.get("content-type") || "";     // 👈 Get Content‑Type header
+  if (!contentType.includes("application/json")) {               // 👈 Reject non‑JSON bodies
+    return NextResponse.json(                                    // 👈 Respond with 415 Unsupported Media Type
+      { error: "Content-Type must be application/json." },
+      { status: 415 },
+    );
   }
+
+  /* ---- 2. Read and validate body ------------------------------------------- */
+  const rawBody = await req.text();                              // 👈 Read body as string
+  if (!rawBody || rawBody.trim() === "" || rawBody === "undefined") { // 👈 Empty / undefined guard
+    return NextResponse.json(                                    // 👈 Respond 400 Bad Request
+      { error: "Request body empty." },
+      { status: 400 },
+    );
+  }
+
+  let parsed: z.infer<typeof UploadSchema>;                      // 👈 Type of validated payload
+  try {
+    parsed = UploadSchema.parse(JSON.parse(rawBody));            // 👈 Parse + validate with Zod
+  } catch (err) {
+    Sentry.captureException(err);                                // 👈 Report validation errors
+    return NextResponse.json(                                    // 👈 Respond 400 if malformed
+      { error: "Malformed payload." },
+      { status: 400 },
+    );
+  }
+
+  /* ---- 3. Derive additional fields ----------------------------------------- */
+  const { path, tenantId, userId } = parsed;                     // 👈 Destructure validated values
+  const fileId = path.split("/").pop() as string;                // 👈 Extract fileId from path
+
+  /* ---- 4. Enqueue Firestore job -------------------------------------------- */
+  try {
+    const db = getFirestore();                                   // 👈 Reuse Admin SDK Firestore
+    await db.collection("processingQueue")                       // 👈 Write to top‑level queue
+      .add({                                                     // 👈 Add new job document
+        path,                                                    // 👈 Storage object path
+        tenantId,                                                // 👈 Tenant namespace
+        userId,                                                  // 👈 Uploader UID
+        fileId,                                                  // 👈 Short file identifier
+        status: "PENDING",                                       // 👈 Initial job status
+        createdAt: new Date(),                                   // 👈 Timestamp for ordering
+      });
+    logger.info("📬 Job enqueued in processingQueue", { fileId }); // 👈 Success log
+  } catch (err) {
+    logger.error("🚫 Failed to enqueue processing job", err);    // 👈 Error log
+    Sentry.captureException(err);                                // 👈 Report to Sentry
+    return NextResponse.json(                                    // 👈 Respond 500 Internal Server Error
+      { error: "Failed to enqueue job." },
+      { status: 500 },
+    );
+  }
+
+  /* ---- 5. Respond immediately ---------------------------------------------- */
+  return NextResponse.json(                                      // 👈 202 Accepted – job queued
+    { ok: true },
+    { status: 202 },
+  );
 }

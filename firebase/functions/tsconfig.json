@@ -1,17 +1,33 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    /* Basic Options */
+    "module": "commonjs",              // Cloud Functions expects CommonJS
+    "target": "es2020",                // Modern syntax supported by Node 20
+    "lib": ["es2020"],
+
+    /* Module Resolution */
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    "resolveJsonModule": true,
+
+    /* Output */
     "outDir": "lib",
     "sourceMap": true,
+
+    /* Strictness */
     "strict": true,
-    "target": "es2017"
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,              // ← silences @google-cloud/storage typing issue
+
+    /* Types */
+    "types": ["node"],                 // only Node typings in Functions
+    "forceConsistentCasingInFileNames": true
   },
   "compileOnSave": true,
   "include": [
-    "src"
+    "src/**/*",
+    "../src/prompts/promptVersions.ts",  // shared prompt registry used by callLLMParser
+    "../src/lib/zodSchemas.ts"          // shared Zod schemas
   ]
 }

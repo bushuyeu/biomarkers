@@ -1,16 +1,19 @@
-// src/lib/processDocumentFromStorage.ts
+// firebase/functions/src/pipelines/processDocumentFromStorage.ts
 
 // Import Sentry for logging breadcrumbs and exceptions during runtime
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/node";
 
 // Import lazy getter functions for Firestore and Storage access
-import { getAdminDb, getAdminBucket } from "./firebaseAdmin";
+import { getAdminDb, getAdminBucket } from "../firebaseAdmin";
 
-// Import Zod schemas to validate Firestore and LLM responses
-import { ParsedLLMOutputSchema, FileMetadataSchema } from "./zodSchemas";
+// Import Zod schemas and types to validate Firestore and LLM responses
+import {
+  ParsedLLMOutputSchema,
+  FileMetadataSchema,
+} from "../zodSchemas";
 
-// Import the expected structure of the LLM output for TypeScript type checking
-import type { ParsedLLMOutput } from "./zodSchemas";
+import type { ParsedLLMOutput } from "../zodSchemas";
+
 
 /**
  * Main function that processes an uploaded document.
@@ -32,8 +35,8 @@ export async function processDocumentFromStorage(
         const adminBucket = getAdminBucket();
 
         // Dynamically load OCR and LLM parser modules (to prevent build-time issues)
-        const { runOCR } = await import("./runOCR");
-        const { callLLMParser } = await import("./callLLMParser");
+        const { runOCR } = await import("./runOCR.js");
+        const { callLLMParser } = await import("./callLLMParser.js");
 
         // Add Sentry breadcrumb for traceability of this process start
         Sentry.addBreadcrumb({
